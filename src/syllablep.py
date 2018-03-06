@@ -1,7 +1,15 @@
 def converttoint(line, wordtonum, numtoword):
+    '''
+    Removes quotes and fills dictionaries to convert from int to word and
+    vice versa, converting the line of words into a list of integers.
+    Later I will adjust this so that the quotes are removed and the line
+    is converted into a list of strings in removechars() because that
+    seems the most logical.
+    For now, this gets the job done though.
+    '''
     line = line.split(' ')
     converted = []
-    line.append('\n')
+    line.append("\n")
     quote = False
     q = "'"
     for word in line:
@@ -24,6 +32,9 @@ def converttoint(line, wordtonum, numtoword):
     return converted
 
 def removechars(original):
+    '''
+    Removes special characters
+    '''
     replacement = original
     for char in replacement:
         if char in '.,:;?()':
@@ -44,8 +55,8 @@ def readshakes():
     poem = []
     poems = []
     poemnumbers = []
-    wordtonum = {}
-    numtoword = {}
+    wordtonum = {"\n" : 0}
+    numtoword = {0 : "\n"}
     currentpoem = 0
     print(len(pread[0][0:5]))
     print(pread[0][0:5])
@@ -62,32 +73,43 @@ def readshakes():
                     poem = []
                     line = 0
 
+            # unfortunately it got angery when i tried to remove these later, so
+            # i just never added them to the list. I will fix this to be more
+            # reasonable later, but for now I sorry
             else:
                 if (currentpoem == 99):
-                    if (line < 14):
-                        poem.append(converttoint(removechars(p), wordtonum, numtoword))
-                    else:
-                        poem.append(converttoint(removechars(p[2:len(p)]), wordtonum, numtoword))
+                    # if (line < 14):
+                    #     poem.extend(converttoint(removechars(p), wordtonum, numtoword))
+                    # else:
+                    #     poem.extend(converttoint(removechars(p[2:len(p)]), wordtonum, numtoword))
+                    currentpoem = currentpoem
                 else:
                     if (currentpoem == 126):
-                        if (line < 11):
-                            poem.append(converttoint(removechars(p), wordtonum, numtoword))
-                        else:
-                            poem.append(converttoint(removechars(p[2:len(p)]), wordtonum, numtoword))
+                        # if (line < 11):
+                        #     poem.extend(converttoint(removechars(p), wordtonum, numtoword))
+                        # else:
+                        #     poem.extend(converttoint(removechars(p[2:len(p)]), wordtonum, numtoword))
+                        currentpoem = currentpoem
                     else:
                         if (line < 13):
-                            poem.append(converttoint(removechars(p), wordtonum, numtoword))
+                            poem.extend(converttoint(removechars(p), wordtonum, numtoword))
                         else:
-                            poem.append(converttoint(removechars(p[2:len(p)]), wordtonum, numtoword))
+                            poem.extend(converttoint(removechars(p[2:len(p)]), wordtonum, numtoword))
                 line += 1
+
+    # now remove the two poems we dont like.
+
+
     return (poems, poemnumbers, wordtonum, numtoword)
 
-
-sfile = open("data/Syllable_dictionary.txt", "r")
-syllableslist = sfile.read().splitlines()
-
-for syllables in syllableslist:
-    syllables = syllables.split(' ')
-    print(syllables)
-
-(ps, pns, wtn, ntw) = readshakes()
+def readsylls():
+    '''
+    I started to make a thing to read the syllable dictionary but then I realized
+    I had gotten ahead of myself. This is still unfinished. We don't need it yet
+    Though so I am not too concerned.
+    '''
+    sfile = open("data/Syllable_dictionary.txt", "r")
+    syllableslist = sfile.read().splitlines()
+    for syllables in syllableslist:
+        syllables = syllables.split(' ')
+    return syllableslist
