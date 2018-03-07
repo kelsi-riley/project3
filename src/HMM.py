@@ -313,8 +313,8 @@ class HiddenMarkovModel:
         # the code under the comment is part of the M-step.
 
         for iteration in range(1, N_iters + 1):
-            if iteration % 10 == 0:
-                print("Iteration: " + str(iteration))
+            # if iteration % 10 == 0:
+            #     print("Iteration: " + str(iteration))
 
             # Numerator and denominator for the update terms of A and O.
             A_num = [[0. for i in range(self.L)] for j in range(self.L)]
@@ -397,13 +397,15 @@ class HiddenMarkovModel:
 
         emission = []
         state = random.choice(range(self.L))
+        sline = []
         states = []
+        line = []
 
         for t in range(M):
             noend = True
             while(noend):
                 # Append state.
-                states.append(state)
+                sline.append(state)
 
                 # Sample next observation.
                 rand_var = random.uniform(0, 1)
@@ -414,9 +416,13 @@ class HiddenMarkovModel:
                     next_obs += 1
 
                 next_obs -= 1
-                emission.append(next_obs)
+                line.append(next_obs)
                 if (next_obs == 0):
                     noend = False
+                    emission.append(line)
+                    line = []
+                    states.append(sline)
+                    sline = []
 
                 # Sample next state.
                 rand_var = random.uniform(0, 1)

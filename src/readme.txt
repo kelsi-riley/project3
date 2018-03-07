@@ -1,11 +1,16 @@
-The part that actually runs and does a thing is in 2D.py
-most of the code I have written is in syllablep.py
-I have also altered HMM.py and 2D.py
+The part that actually runs and does a thing is in HMMpoem.py.
 
-Fear not, I will rename things and clean up my code/comment more clearly tomorrow
+Most of the code I have written is in processing.py and HMMpoem.py, but I have
+also also altered HMM.py a little (i.e. the unsupervised_generation() function).
 
 I currently load in poems as lists of strings, where the strings are words and
 endline characters (I have inserted the end line characters at the end of lines).
+
+I think our next step will be to try to change it so that we get the correct
+syllable count. I'm not entirely sure how to do that. At this point. We can
+externally enforce it, but that seems like it would make our lines less reasonable.
+Idk. 
+
 I was thinking we could put some character at the start of the volta to indicate
 that the volta is a thing.
 
