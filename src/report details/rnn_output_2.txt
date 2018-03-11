@@ -1,0 +1,83 @@
+-- output with more advanced preprocessing and 125 epochs of training
+
+----- diversity: 0.1
+----- Generating with seed: "air
+the roses fearfully on thorns did st"
+air
+the roses fearfully on thorns did stand
+one blushing stand to my body the sun
+showld nay seep being husain of thine eye
+as i think that i do cishrn the lonw
+so ait ro to thy self to stay see hoddated
+ay asthrit the vastes of time doth beauty sease
+dut the defect to the might the world eorg
+wish uhifh hath thy will minhing sweet hraces
+that may be oost i will excuse my self
+abuanration live and all her bare
+to soearure of my self all orher wirtue
+hath healt fruealt grotnd to thee but being crimient
+nou in my mond so the times spuele
+and see the brave doth pieasure the world
+
+
+----- diversity: 0.2
+----- Generating with seed: "air
+the roses fearfully on thorns did sta"
+air
+the roses fearfully on thorns did staane
+
+l
+ dniceee  tgiss eirfsr iits itn tdhlf dcryt
+i
+ojoteed sboyeerg
+dtotmit itn udhllsys eiaxtireyd dtoieen
+
+
+
+
+sweeee tbhvre nbetetr etorm tioru haen  a
+s hwies  dsqeo iemle  nsl emrot eaxi ttoalsn
+e
+opatl  wmilxd daoy eiisuue noarl eiosgtss
+
+
+----- diversity: 0.3
+----- Generating with seed: "air
+the roses fearfully on thorns did staa"
+air
+the roses fearfully on thorns did staaane
+
+
+n totculhe n tabrwt  etnaeniseu deboaaivet
+
+ b
+ ni   ti iell e aylh ltti tcuiesitte  nonooeiidtnn
+ yc
+iliel seielsso   um
+imo vwahitts l tnhaufkidt dsoepe u chkain
+n
+tebhurne e aobhcan nltot iiinmh yshontng
+enarri  nhgrs  atplaeaked e woiiuanetd  dathcalsse  donavme
+edboerintngieng  ncgireeun   smmh eiivvureyes  tttiiecgt eliisaeese
+db
+
+
+----- diversity: 0.4
+----- Generating with seed: "air
+the roses fearfully on thorns did staaa"
+air
+the roses fearfully on thorns did staaaane
+
+
+
+f t   htnmamd o  afe bl tlocomee is in meooy
+
+t
+a
+atibld eelaraihekesned  d ibabenkareloch eecpradl
+ileis ergtuteiildtng senoee istas otodar
+ersaeemst    tr
+
+het
+o einenou bt me destoaerect d  nlg
+ocvbitcnaeste e doosouminiti   esg
