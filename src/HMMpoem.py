@@ -10,7 +10,7 @@ from HMM import unsupervised_HMM
 from Utility import Utility
 import processing
 
-def generations(HMM, k):
+def generations(HMM, k, sylls, endsylls, linesylls, rhymedict, wantrhyme):
     '''
     This function generates k emissions for each HMM, where each emission
     consists of 14 lines. Then, it converts the emission from a list of
@@ -27,7 +27,17 @@ def generations(HMM, k):
         # note, I have now modified generate_emission() in HMM.py
         # so that in theory it should print out d lines, where d is the
         # argument passed into it.
-        emission, states = HMM.generate_emission(14)
+        # if (linesylls):
+        #     emission, states = HMM.generate_emission_set_sylls(14, sylls, endsylls)
+        # else:
+        #     emission, states = HMM.generate_emission(14)
+        if (wantrhyme):
+            emission, states = HMM.generate_emission_rhyme(14, sylls, endsylls, rhymedict)
+        else:
+            if (linesylls):
+                emission, states = HMM.generate_emission_set_sylls(14, sylls, endsylls)
+            else:
+                emission, states = HMM.generate_emission(14)
         line = []
         poem = []
         count = 0
@@ -58,7 +68,7 @@ def generations(HMM, k):
     print('')
 
 
-def unsupervised_generation(ps, D, n_states, N_iters, k):
+def unsupervised_generation(ps, D, n_states, N_iters, k, sylls, endsylls, rhymedict, wantrhyme, linesylls=True):
     '''
     Trains an HMM using unsupervised learning on the poems and then calls
     generations() to generate k emissions for each HMM, processing the emissions
@@ -84,16 +94,25 @@ def unsupervised_generation(ps, D, n_states, N_iters, k):
 
     # Train the HMM.
     HMM = unsupervised_HMM(ps, D, n_states, N_iters)
+    HMM.save_HMM(n_states, N_iters, 1)
     # generates and prints "poems"
-    generations(HMM, k)
+    #generations(HMM, k, sylls, endsylls, linesylls, rhymedict, wantrhyme)
 
 
 
 if __name__ == '__main__':
     # reads in the shakespeare poems.
-    (ps, pns, wtn, ntw) = processing.readshakes()
+    (ps, pns, wtn, ntw, rdict) = processing.readshakes()
+    (sylls, endsylls) = processing.readsylls(wtn)
     k = 5 # number of poems to generate for each model.
+    #only if we are trying to rhyme yo
+    wantrhyme = False
+    if (wantrhyme):
+        for p in ps:
+            p.reverse()
+            p.insert(0, 0)
+            p.pop()
     # Train the HMM.
-    n_states = [32] # [2, 4, 8, 16, 32]
+    n_states = [8, 10, 12, 14, 16] # [2, 4, 8, 16, 32]
     for n in n_states:
-        unsupervised_generation(ps, len(wtn), n, 500, k)
+        unsupervised_generation(ps, len(wtn), n, 400, k, sylls, endsylls, rdict, wantrhyme)
