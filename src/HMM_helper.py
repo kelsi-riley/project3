@@ -122,6 +122,7 @@ def sample_sentence(hmm, obs_map, n_words=100):
     obs_map_r = obs_map_reverser(obs_map)
 
     # Sample and convert sentence.
+
     emission, states = hmm.generate_emission(n_words)
     sentence = []
     for i in range(len(emission)):
