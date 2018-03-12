@@ -1,31 +1,36 @@
+def read_saved_HMM(name):
+    f= open(name, "r")
+    syllableslist = f.read().splitlines()
+    L = 0
+    D = 0
+    A = []
+    O = []
+    for i in range(0, len(syllableslist)):
+        data = syllableslist[i].split(' ')
+        if i == 0:
+            L = data[0]
+            D = data[1]
+        else:
+            if (i <= L + 1):
+                A.append(data)
+            else:
+                O.append(data)
+
+    return (A, O)
+
+
 def add_to_rhyme(worda, wordb, rhymedict):
     '''
-    Note: eventually might want to modify so that things that rhyme with
-    wordb now rhyme with worda and vice versa.
+    Arguments:
+        worda: an integer that maps to one of the words of the rhyme-pair
+        wordb: an integer that maps to the other word in the rhyme-pair
+        rhymedict: a dictionary that maps from an integer which maps to a word
+                   to a list of words that rhyme with it
+    This function adds a pair of rhyming words to a dictionary of rhymes.
+    Output:
+        rhymedict: an updated rhyme dictionary that includes that worda and
+                   wordb rhyme.
     '''
-    # a_in = False
-    # if (worda in rhymedict.keys()):
-    #     a_in == True
-    # b_in = False
-    # if (wordb in rhymedict.keys()):
-    #     b_in == True
-    # alreadypaired = False
-    # if (a_in and b_in):
-    #     rhymes = rhymedict[worda]
-    #     for w in rhymes:
-    #         if w == wordb:
-    #             alreadypaired = True
-    # if not alreadypaired:
-    #     if a_in:
-    #         rhymedict[worda].append(wordb)
-    #     else:
-    #         rhymedict[worda] = [wordb]
-    #     if b_in:
-    #         rhymedict[wordb].append(worda)
-    #     else:
-    #         rhymedict[wordb] = [worda]
-    # print(rhymedict[worda])
-    # print(rhymedict[wordb])
     try:
         rhymedict[worda].append(wordb)
     except KeyError:
@@ -286,12 +291,21 @@ def readsylls(wtn):
                 endsyl.append(int(syllables[i][1:]))
             else:
                 syl.append(int(syllables[i]))
+        # we only add a syllable to our syllable dictionary if it is in our
+        # word to number dictionary. Theoretically, there should only be words
+        # in the syllable text file if it is in a poem, but this is just to
+        # be safe and make sure we aren't storing unnecessary words and that
+        # we can convert each word being represented in the syllable dictionary
+        # to the integer which it maps to in word to number dictionary.
         if (syllables[0] in wtn):
+            # sylls stores the normal syllable count of words
             sylls[wtn[syllables[0]]] = syl
+            # if the word has a different number of syllables at the end of a
+            # line, we store those syllables in endsylls. Otherwise, we store
+            # the normal syllable count here too.
             if (len(endsyl) > 0):
                 endsylls[wtn[syllables[0]]] = endsyl
             else:
                 endsylls[wtn[syllables[0]]] = syl
-
 
     return sylls, endsylls

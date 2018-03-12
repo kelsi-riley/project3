@@ -24,15 +24,16 @@ def generations(HMM, k, sylls, endsylls, linesylls, rhymedict, wantrhyme):
     print('#' * 70)
     # Generate k input sequences.
     for i in range(k):
-        # note, I have now modified generate_emission() in HMM.py
-        # so that in theory it should print out d lines, where d is the
-        # argument passed into it.
-        # if (linesylls):
-        #     emission, states = HMM.generate_emission_set_sylls(14, sylls, endsylls)
-        # else:
-        #     emission, states = HMM.generate_emission(14)
+        # if wantrhyme is True, then our generated emissions will each be 14
+        # lines long, with each line being 10 syllables, and the resulting
+        # lines will rhyme with the rhyme scheme abab cdcd efef gg.
         if (wantrhyme):
             emission, states = HMM.generate_emission_rhyme(14, sylls, endsylls, rhymedict)
+        # if wantrhyme is False, then if linesylls is True, generated
+        # emissions will be 14 lines each, and will each be 10 syllables
+        # long. Otherwise, the generated emissions will simply be 14 lines,
+        # but any number of syllables long. (and could possibly contain no
+        # words at all)
         else:
             if (linesylls):
                 emission, states = HMM.generate_emission_set_sylls(14, sylls, endsylls)
@@ -45,8 +46,7 @@ def generations(HMM, k, sylls, endsylls, linesylls, rhymedict, wantrhyme):
             for i in e:
                 line.append(ntw[i])
             line = ' '.join([str(i) for i in line])
-            # in theory, this should capitalize the first word of every line,
-            # but I haven't tested it yet, so who knows.
+            # Capitalizes the first word of every line
             if (line[0] == q[0]):
                 line = line[0] + line[1].upper() + line[2:]
             else:
@@ -105,7 +105,9 @@ if __name__ == '__main__':
     (ps, pns, wtn, ntw, rdict) = processing.readshakes()
     (sylls, endsylls) = processing.readsylls(wtn)
     k = 5 # number of poems to generate for each model.
-    #only if we are trying to rhyme yo
+    # If wantrhyme = True, our generations will consist of 14 lines of 10
+    # syllables each, and they will follow the rhyme scheme abab cdcd efef gg.
+    # If wantrhyme = False,
     wantrhyme = False
     if (wantrhyme):
         for p in ps:

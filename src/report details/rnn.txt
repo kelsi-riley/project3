@@ -1,0 +1,13 @@
+Things to discuss in report for rnn:
+
+- diversity measures
+- training for more epochs
+- how to generate emissions
+- changes in pre-proccessing
+  - pre-processing to condense lines (between poems)
+  - removing puntuaction and numbers
+- converging to real words
+- more complex models
+- training and generating backwards
+- rhyming dictionary for backwards
+- training on more shakespeare

@@ -1,0 +1,14 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Pre-Processing}{}% 2
+\BOOKMARK [1][-]{section.3}{Unsupervised Learning}{}% 3
+\BOOKMARK [1][-]{section.4}{Poetry Generation, Part 1: Hidden Markov Models}{}% 4
+\BOOKMARK [1][-]{section.5}{Poetry Generation, Part 2: Recurrent Neural Networks}{}% 5
+\BOOKMARK [2][-]{section*.1}{Initial Implementation}{section.5}% 6
+\BOOKMARK [2][-]{section*.1}{Poems}{section.5}% 7
+\BOOKMARK [1][-]{section.6}{Additional Goals}{}% 8
+\BOOKMARK [2][-]{section*.2}{Haikus}{section.6}% 9
+\BOOKMARK [2][-]{section*.2}{More Complex RNNs}{section.6}% 10
+\BOOKMARK [2][-]{section*.2}{Rhyming}{section.6}% 11
+\BOOKMARK [1][-]{section.7}{Visualization and Interpretation}{}% 12
+\BOOKMARK [2][-]{section*.3}{Visualization of dataset}{section.7}% 13
+\BOOKMARK [2][-]{figure.caption.4}{Visualization of the sparsities of A and O}{section.7}% 14
