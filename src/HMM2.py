@@ -53,17 +53,6 @@ class HiddenMarkovModel:
         self.O = O
         self.A_start = [1. / self.L for _ in range(self.L)]
 
-    def save_HMM(self, num_states, num_iters, HMMid):
-        fname = str(num_states)+"_"+str(num_iters)+"_"+str(HMMid)+".txt"
-        f= open(fname, "w")
-        f.write(str(self.L)+" "+str(self.D)+"\n")
-        for a in self.A:
-            f.write(' '.join([str(i) for i in a]))
-            f.write("\n")
-        for o in self.O:
-            f.write(' '.join([str(i) for i in o]))
-            f.write("\n")
-        f.close()
 
     def viterbi(self, x):
         '''
@@ -324,8 +313,8 @@ class HiddenMarkovModel:
         # the code under the comment is part of the M-step.
 
         for iteration in range(1, N_iters + 1):
-            # if iteration % 10 == 0:
-            #     print("Iteration: " + str(iteration))
+            if iteration % 10 == 0:
+                print("Iteration: " + str(iteration))
 
             # Numerator and denominator for the update terms of A and O.
             A_num = [[0. for i in range(self.L)] for j in range(self.L)]
@@ -398,7 +387,7 @@ class HiddenMarkovModel:
         is chosen uniformly at random.
 
         Arguments:
-            M:          Number of lines to generate.
+            M:          Length of the emission to generate.
 
         Returns:
             emission:   The randomly generated emission as a list.
@@ -408,376 +397,36 @@ class HiddenMarkovModel:
 
         emission = []
         state = random.choice(range(self.L))
-        sline = []
         states = []
-        line = []
 
         for t in range(M):
-            noend = True
-            while(noend):
-                # Append state.
-                sline.append(state)
+            # Append state.
+            states.append(state)
 
-                # Sample next observation.
-                rand_var = random.uniform(0, 1)
-                next_obs = 0
+            # Sample next observation.
+            rand_var = random.uniform(0, 1)
+            next_obs = 0
 
-                while rand_var > 0:
-                    rand_var -= self.O[state][next_obs]
-                    next_obs += 1
+            while rand_var > 0:
+                rand_var -= self.O[state][next_obs]
+                next_obs += 1
 
-                next_obs -= 1
-                line.append(next_obs)
-                emission.append(next_obs)
-                if (next_obs == 0):
-                    noend = False
-                    #emission.append(line)
-                    line = []
-                    states.append(sline)
-                    sline = []
+            next_obs -= 1
+            emission.append(next_obs)
 
-                # Sample next state.
-                rand_var = random.uniform(0, 1)
-                next_state = 0
+            # Sample next state.
+            rand_var = random.uniform(0, 1)
+            next_state = 0
 
-                while rand_var > 0:
-                    rand_var -= self.A[state][next_state]
-                    next_state += 1
+            while rand_var > 0:
+                rand_var -= self.A[state][next_state]
+                next_state += 1
 
-                next_state -= 1
-                state = next_state
+            next_state -= 1
+            state = next_state
 
         return emission, states
 
-    def generate_emission_set_sylls(self, M, sylls, endsylls):
-        '''
-        Generates an emission of length M, assuming that the starting state
-        is chosen uniformly at random.
-
-        Arguments:
-            M:          Number of lines to generate.
-
-        Returns:
-            emission:   The randomly generated emission as a list.
-
-            states:     The randomly generated states as a list.
-        '''
-
-        emission = []
-        state = random.choice(range(self.L))
-        sline = []
-        states = []
-        line = []
-        syllables = 0
-        s = []
-
-        for t in range(M):
-            noend = True
-            while(noend):
-                nonext = True
-                count = 0
-                next_syll = 0
-                while (nonext and count < 30):
-                    # Sample next observation.
-                    rand_var = random.uniform(0, 1)
-                    next_obs = 0
-
-                    while rand_var > 0:
-                        rand_var -= self.O[state][next_obs]
-                        next_obs += 1
-
-                    next_obs -= 1
-                    if (next_obs == 0):
-                        if (syllables == 10):
-                            nonext = False
-                        else:
-                            count += 1
-                    else:
-                        if (next_obs in sylls):
-                            lessthanlim = False
-                            for i in range(len(sylls[next_obs])):
-                                if (syllables + sylls[next_obs][i] < 10):
-                                    lessthanlim = True
-                                    next_syll = sylls[next_obs][i]
-                            endlim = False
-                            for i in range(len(endsylls[next_obs])):
-                                if (syllables + endsylls[next_obs][i] == 10):
-                                    endlim = True
-                                    next_syll = endsylls[next_obs][i]
-                            if not lessthanlim:
-                                if not endlim:
-                                    count += 1
-                                else:
-                                    nonext = False
-                            else:
-                                nonext = False
-                        else:
-                            count += 1
-
-                if not nonext:
-                    # Append state.
-                    sline.append(state)
-                    line.append(next_obs)
-                    syllables += next_syll
-                    s.append(next_syll)
-
-                    if (next_obs == 0):
-                        noend = False
-                        emission.append(line)
-                        line = []
-                        states.append(sline)
-                        sline = []
-                        syllables = 0
-                        s = []
-
-                else:
-                    sline.pop()
-                    line.pop()
-                    syllables -= s.pop()
-
-                rand_var = random.uniform(0,1)
-                next_state = 0
-                if (len(sline) == 0):
-                    state = states[len(states) -1][len(states[len(states) -1]) -1]
-                else:
-                    state = sline[len(sline) - 1]
-                while rand_var > 0:
-                    rand_var -= self.A[state][next_state]
-                    next_state += 1
-
-                next_state -= 1
-                state = next_state
-
-        return emission, states
-
-    def generate_emission_rhyme(self, M, sylls, endsylls, rhymedict):
-        '''
-        Generates an emission of length M, assuming that the starting state
-        is chosen uniformly at random.
-
-        Arguments:
-            M:          Number of lines to generate.
-
-        Returns:
-            emission:   The randomly generated emission as a list.
-
-            states:     The randomly generated states as a list.
-        '''
-        #print(rhymedict)
-        rhymes = list(rhymedict.keys())
-        rhymea = 0
-        rhymeb = 0
-        emission = []
-        state = random.choice(range(self.L))
-        linenum = 14
-        sline = []
-        states = []
-        line = []
-        syll_count = 0
-        syllables = []
-        nextsyllables = []
-        newsyllables = []
-        tried = 0
-        endlim = False
-
-        for t in range(M):
-            noend = True
-            while(noend):
-                neednext = False
-                #print(line)
-                nonext = True
-                if (syllables == []):
-                    if (linenum == 14) or (linenum % 4 == 0):
-                        rhymea = []
-                        total = 0.0
-                        for r in rhymes:
-                            rhymea.append(self.O[state][r])
-                            total += self.O[state][r]
-                        for r in range(len(rhymes)):
-                            rhymea[r] = rhymea[r]/total
-                        rand_var = random.uniform(0, 1)
-                        next_obs = 0
-                        while rand_var > 0:
-                            rand_var -= rhymea[next_obs]
-                            next_obs += 1
-                        next_obs -= 1
-                        next_obs = rhymes[next_obs]
-                        rhymea = next_obs
-                    else:
-                        if (linenum % 4 == 3):
-                            rhymeb = []
-                            total = 0.0
-                            for r in rhymes:
-                                rhymeb.append(self.O[state][r])
-                                total += self.O[state][r]
-                            for r in range(len(rhymes)):
-                                rhymeb[r] = rhymeb[r]/total
-                            rand_var = random.uniform(0, 1)
-                            next_obs = 0
-                            while rand_var > 0:
-                                rand_var -= rhymeb[next_obs]
-                                next_obs += 1
-                            next_obs -= 1
-                            next_obs = rhymes[next_obs]
-                            rhymeb = next_obs
-                        else:
-                            if (linenum == 13) or (linenum % 4 == 2):
-                                rhymeswitha = rhymedict[rhymea]
-                                probs = []
-                                total = 0.0
-                                for r in rhymeswitha:
-                                    probs.append(self.O[state][r])
-                                    total += self.O[state][r]
-                                for r in range(len(rhymeswitha)):
-                                    probs[r] = probs[r]/total
-                                rand_var = random.uniform(0, 1)
-                                next_obs = 0
-                                while rand_var > 0:
-                                    rand_var -= probs[next_obs]
-                                    next_obs += 1
-                                next_obs -= 1
-                                next_obs = rhymeswitha[next_obs]
-                            else:
-                                rhymeswithb = rhymedict[rhymeb]
-                                probs = []
-                                total = 0.0
-                                for r in rhymeswithb:
-                                    probs.append(self.O[state][r])
-                                    total += self.O[state][r]
-                                for r in range(len(rhymeswithb)):
-                                    probs[r] = probs[r]/total
-                                rand_var = random.uniform(0, 1)
-                                next_obs = 0
-                                while rand_var > 0:
-                                    rand_var -= probs[next_obs]
-                                    next_obs += 1
-                                next_obs -= 1
-                                next_obs = rhymeswithb[next_obs]
-                    nonext = False
-                    if (next_obs in endsylls):
-                        nextsyllables = endsylls[next_obs]
-                        for n in nextsyllables:
-                            syllables.append([n])
-
-
-                # case where we aren't finding the last word of the line
-                else:
-                    nonext = True
-                    count = 0
-                    while (nonext and count < 30):
-                        # Sample next observation.
-                        rand_var = random.uniform(0, 1)
-                        next_obs = 0
-
-                        while rand_var > 0:
-                            rand_var -= self.O[state][next_obs]
-                            next_obs += 1
-
-                        next_obs -= 1
-                        if (next_obs == 0):
-                            if (endlim):
-                                nonext = False
-                                endlim = False
-                            else:
-                                count += 1
-                        else:
-                            if (endlim):
-                                nonext = False
-                                endlim = False
-                                noend = False
-                                next_obs = 0
-                            else:
-                                if (next_obs in sylls):
-                                    lessthanlim = False
-                                    endlim = False
-                                    nextsyllables = sylls[next_obs]
-                                    newsyllables = []
-                                    for j in range(len(syllables)):
-                                        for i in range(len(nextsyllables)):
-                                            nexts = list(syllables[j])
-                                            nexts.append(nextsyllables[i])
-                                            newsyllables.append(nexts)
-                                    for j in range(len(newsyllables)):
-                                        if (sum(newsyllables[j]) == 10):
-                                            endlim = True
-                                            syllables = list(newsyllables)
-                                        else:
-                                            if (sum(newsyllables[j]) < 10):
-                                                lessthanlim = True
-                                                syllables = list(newsyllables)
-
-
-                                    if (not endlim) and (not lessthanlim):
-                                        count +=1
-                                    else:
-                                        nonext = False
-
-
-                if not nonext:
-                    # Append state.
-                    line.append(next_obs)
-                    sline.append(state)
-                    if (next_obs == 0):
-                        noend = False
-                        endlim = False
-                        line.reverse()
-                        sline.reverse()
-                        emission.append(line)
-                        line = []
-                        states.append(sline)
-                        sline = []
-                        syllables = []
-                        linenum -= 1
-
-                else:
-                    if (tried > 10):
-                        sline = [sline[0]]
-                        line = [line[0]]
-                        newsyllables = []
-                        for s in syllables:
-                            newsyllables.append[s[0]]
-                        syllables = newsyllables
-                        newsyllables = []
-                        tried = 0
-                        neednext = True
-                    else:
-                        tried += 1
-                        sline.pop()
-                        line.pop()
-                        newsyllables = []
-                        for s in syllables:
-                            state = s.pop()
-                            newsyllables.append[s]
-                        syllables = newsyllables
-                        newsyllables = []
-                        neednext = True
-                if (not nonext) or neednext:
-                    rand_var = random.uniform(0,1)
-                    next_state = 0
-                    if (len(sline) == 0):
-                        if (len(states)>0):
-                            state = states[len(states) -1][len(states[len(states) -1]) -1]
-                        else:
-                            state = random.choice(range(self.L))
-
-                    else:
-                        state = sline[len(sline) - 1]
-                    transprop = []
-                    total = 0.0
-                    for k in range(0, self.L):
-                        transprop.append(self.A[state][k])
-                        total += self.A[state][k]
-                    for k in range(0, self.L):
-                        transprop[k] = transprop[k]/total
-                    while rand_var > 0:
-                        rand_var -= transprop[next_state]
-                        next_state += 1
-
-                    next_state -= 1
-                    state = next_state
-        emission.reverse()
-        states.reverse()
-        return emission, states
 
     def probability_alphas(self, x):
         '''
@@ -882,50 +531,7 @@ def supervised_HMM(X, Y):
     return HMM
 
 
-def unsupervised_HMM(X, D, n_states, N_iters):
-    '''
-    Helper function to train an unsupervised HMM. The function determines the
-    number of unique observations in the given data, initializes
-    the transition and observation matrices, creates the HMM, and then runs
-    the training function for unsupervised learing.
-
-    Arguments:
-        X:          A dataset consisting of input sequences in the form
-                    of lists of variable length, consisting of integers
-                    ranging from 0 to D - 1. In other words, a list of lists.
-
-        n_states:   Number of hidden states to use in training.
-
-        N_iters:    The number of iterations to train on.
-    '''
-
-
-    # Compute L and D.
-    L = n_states
-
-    # Randomly initialize and normalize matrices A and O.
-    A = [[random.random() for i in range(L)] for j in range(L)]
-
-    for i in range(len(A)):
-        norm = sum(A[i])
-        for j in range(len(A[i])):
-            A[i][j] /= norm
-
-    # Randomly initialize and normalize matrix O.
-    O = [[random.random() for i in range(D)] for j in range(L)]
-
-    for i in range(len(O)):
-        norm = sum(O[i])
-        for j in range(len(O[i])):
-            O[i][j] /= norm
-
-    # Train an HMM with unlabeled data.
-    HMM = HiddenMarkovModel(A, O)
-    HMM.unsupervised_learning(X, N_iters)
-
-    return HMM
-
-def unsupervised_HMM_wordcloud(X, n_states, N_iters):
+def unsupervised_HMM(X, n_states, N_iters):
     '''
     Helper function to train an unsupervised HMM. The function determines the
     number of unique observations in the given data, initializes

@@ -428,10 +428,9 @@ class HiddenMarkovModel:
 
                 next_obs -= 1
                 line.append(next_obs)
-                emission.append(next_obs)
                 if (next_obs == 0):
                     noend = False
-                    #emission.append(line)
+                    emission.append(next_obs)
                     line = []
                     states.append(sline)
                     sline = []
