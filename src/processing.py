@@ -1,3 +1,48 @@
+def read_saved_HMM(name):
+    f= open(name, "r")
+    syllableslist = f.read().splitlines()
+    L = 0
+    D = 0
+    A = []
+    O = []
+    for i in range(0, len(syllableslist)):
+        data = syllableslist[i].split(' ')
+        if i == 0:
+            L = data[0]
+            D = data[1]
+        else:
+            if (i <= L + 1):
+                A.append(data)
+            else:
+                O.append(data)
+
+    return (A, O)
+
+
+def add_to_rhyme(worda, wordb, rhymedict):
+    '''
+    Arguments:
+        worda: an integer that maps to one of the words of the rhyme-pair
+        wordb: an integer that maps to the other word in the rhyme-pair
+        rhymedict: a dictionary that maps from an integer which maps to a word
+                   to a list of words that rhyme with it
+    This function adds a pair of rhyming words to a dictionary of rhymes.
+    Output:
+        rhymedict: an updated rhyme dictionary that includes that worda and
+                   wordb rhyme.
+    '''
+    try:
+        rhymedict[worda].append(wordb)
+    except KeyError:
+        rhymedict[worda] = [wordb]
+    try:
+        rhymedict[wordb].append(worda)
+    except KeyError:
+        rhymedict[wordb] = [worda]
+    return rhymedict
+
+
+
 def converttoint(line, wordtonum, numtoword):
     '''
     Arguments:
@@ -124,8 +169,11 @@ def readshakes():
     poem = []
     poems = []
     poemnums = []
+    rhymesa = ''
+    rhymesb = ''
     # initalizes our dictionaries, and maps "\n" to 0 and vice versa for
     # our convenience later when generating poems.
+    rhymedict = {}
     wordtonum = {"\n" : 0}
     numtoword = {0 : "\n"}
     currentpoem = 0
@@ -181,17 +229,32 @@ def readshakes():
                     else:
                         if (line < 13):
                             poem.extend(converttoint(removechars(p), wordtonum, numtoword))
+                            if (line % 4 == 1):
+                                rhymesa = poem[len(poem) -2]
+                            else:
+                                if (line % 4 == 2):
+                                    rhymesb = poem[len(poem) -2]
+                                else:
+                                    if (line % 4 == 3):
+                                        rhymedict = add_to_rhyme(rhymesa, poem[len(poem) -2], rhymedict)
+                                    else:
+                                        rhymedict = add_to_rhyme(rhymesb, poem[len(poem) -2], rhymedict)
+
                         # if we are reading one of the last two lines, we remove
                         # the two spaces at the beginning of the line.
                         else:
                             poem.extend(converttoint(removechars(p[2:len(p)]), wordtonum, numtoword))
+                            if (line == 13):
+                                rhymesa = poem[len(poem) -2]
+                            else:
+                                rhymedict = add_to_rhyme(rhymesa, poem[len(poem) -2], rhymedict)
                 # we increment line to keep track of what line of the poem we
                 # are reading.
                 line += 1
 
-    return (poems, poemnums, wordtonum, numtoword)
+    return (poems, poemnums, wordtonum, numtoword, rhymedict)
 
-def readsylls():
+def readsylls(wtn):
     '''
     This reads the file storing syllable information provided for us and
     produces two dictionaries, sylls, and endsylls from it, which map from
@@ -221,14 +284,28 @@ def readsylls():
         # line has the same number of syllables regardless of its position in
         # a line, so the values mapped to by the word are both set to be
         # this syllable count.
-        if (len(syllables) == 2):
-            sylls[syllabes[0]] = int(syllables[1])
-            endsylls[sysllabes[0]] = int(syllabes[1])
-        # otherwise, the list must contain two values describing the number
-        # of syllables depending on the location of the word in the line. As
-        # such, we map the word corresponding to this line to different
-        # values in the dictionaries.
-        else:
-            sylls[syllabes[0]] = int(syllables[2])
-            endsylls[syllables[0]] = int(syllables[1][1:])
+        endsyl = []
+        syl = []
+        for i in range(1, len(syllables)):
+            if syllables[i][0] == 'E':
+                endsyl.append(int(syllables[i][1:]))
+            else:
+                syl.append(int(syllables[i]))
+        # we only add a syllable to our syllable dictionary if it is in our
+        # word to number dictionary. Theoretically, there should only be words
+        # in the syllable text file if it is in a poem, but this is just to
+        # be safe and make sure we aren't storing unnecessary words and that
+        # we can convert each word being represented in the syllable dictionary
+        # to the integer which it maps to in word to number dictionary.
+        if (syllables[0] in wtn):
+            # sylls stores the normal syllable count of words
+            sylls[wtn[syllables[0]]] = syl
+            # if the word has a different number of syllables at the end of a
+            # line, we store those syllables in endsylls. Otherwise, we store
+            # the normal syllable count here too.
+            if (len(endsyl) > 0):
+                endsylls[wtn[syllables[0]]] = endsyl
+            else:
+                endsylls[wtn[syllables[0]]] = syl
+
     return sylls, endsylls

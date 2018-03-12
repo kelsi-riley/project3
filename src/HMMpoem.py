@@ -10,7 +10,7 @@ from HMM import unsupervised_HMM
 from Utility import Utility
 import processing
 
-def generations(HMM, k):
+def generations(HMM, k, sylls, endsylls, linesylls, rhymedict, wantrhyme):
     '''
     This function generates k emissions for each HMM, where each emission
     consists of 14 lines. Then, it converts the emission from a list of
@@ -24,10 +24,21 @@ def generations(HMM, k):
     print('#' * 70)
     # Generate k input sequences.
     for i in range(k):
-        # note, I have now modified generate_emission() in HMM.py
-        # so that in theory it should print out d lines, where d is the
-        # argument passed into it.
-        emission, states = HMM.generate_emission(14)
+        # if wantrhyme is True, then our generated emissions will each be 14
+        # lines long, with each line being 10 syllables, and the resulting
+        # lines will rhyme with the rhyme scheme abab cdcd efef gg.
+        if (wantrhyme):
+            emission, states = HMM.generate_emission_rhyme(14, sylls, endsylls, rhymedict)
+        # if wantrhyme is False, then if linesylls is True, generated
+        # emissions will be 14 lines each, and will each be 10 syllables
+        # long. Otherwise, the generated emissions will simply be 14 lines,
+        # but any number of syllables long. (and could possibly contain no
+        # words at all)
+        else:
+            if (linesylls):
+                emission, states = HMM.generate_emission_set_sylls(14, sylls, endsylls)
+            else:
+                emission, states = HMM.generate_emission(14)
         line = []
         poem = []
         count = 0
@@ -35,8 +46,7 @@ def generations(HMM, k):
             for i in e:
                 line.append(ntw[i])
             line = ' '.join([str(i) for i in line])
-            # in theory, this should capitalize the first word of every line,
-            # but I haven't tested it yet, so who knows.
+            # Capitalizes the first word of every line
             if (line[0] == q[0]):
                 line = line[0] + line[1].upper() + line[2:]
             else:
@@ -58,7 +68,7 @@ def generations(HMM, k):
     print('')
 
 
-def unsupervised_generation(ps, D, n_states, N_iters, k):
+def unsupervised_generation(ps, D, n_states, N_iters, k, sylls, endsylls, rhymedict, wantrhyme, linesylls=True):
     '''
     Trains an HMM using unsupervised learning on the poems and then calls
     generations() to generate k emissions for each HMM, processing the emissions
@@ -84,16 +94,27 @@ def unsupervised_generation(ps, D, n_states, N_iters, k):
 
     # Train the HMM.
     HMM = unsupervised_HMM(ps, D, n_states, N_iters)
+    HMM.save_HMM(n_states, N_iters, 1)
     # generates and prints "poems"
-    generations(HMM, k)
+    #generations(HMM, k, sylls, endsylls, linesylls, rhymedict, wantrhyme)
 
 
 
 if __name__ == '__main__':
     # reads in the shakespeare poems.
-    (ps, pns, wtn, ntw) = processing.readshakes()
+    (ps, pns, wtn, ntw, rdict) = processing.readshakes()
+    (sylls, endsylls) = processing.readsylls(wtn)
     k = 5 # number of poems to generate for each model.
+    # If wantrhyme = True, our generations will consist of 14 lines of 10
+    # syllables each, and they will follow the rhyme scheme abab cdcd efef gg.
+    # If wantrhyme = False,
+    wantrhyme = False
+    if (wantrhyme):
+        for p in ps:
+            p.reverse()
+            p.insert(0, 0)
+            p.pop()
     # Train the HMM.
-    n_states = [32] # [2, 4, 8, 16, 32]
+    n_states = [8, 10, 12, 14, 16] # [2, 4, 8, 16, 32]
     for n in n_states:
-        unsupervised_generation(ps, len(wtn), n, 500, k)
+        unsupervised_generation(ps, len(wtn), n, 400, k, sylls, endsylls, rdict, wantrhyme)
