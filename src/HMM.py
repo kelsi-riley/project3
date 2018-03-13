@@ -54,9 +54,27 @@ class HiddenMarkovModel:
         self.A_start = [1. / self.L for _ in range(self.L)]
 
     def save_HMM(self, num_states, num_iters, HMMid):
+        '''
+        Arguments:
+            num_states: the number of hidden states of the HMM.
+            num_iters: the number of iterations the HMM was trained for.
+            HMMid: an integer id to distinguish between different models which
+                   have the same number of hidden states and training iterations.
+                   for our puproses, we used 1 if the model was trained
+                   backwards (for our rhyming poem generations), and 2 if it
+                   was trained forwards.
+        This function stores trained HMMs in text files, so that they can be
+        read later and we don't have to retrain our HMM models each time we run
+        our code, yielding significiant runtime savings.
+        '''
         fname = str(num_states)+"_"+str(num_iters)+"_"+str(HMMid)+".txt"
-        f= open(fname, "w")
+        f = open(fname, "w")
+        # The first line contains the numbers of states and observations,
+        # seperated by a space.
         f.write(str(self.L)+" "+str(self.D)+"\n")
+        # subsequent lines each represent a list of A, with the contents of the
+        # list seperated by spaces, and then the remaining lines each represent
+        # a list of O, with the contents of the list seperated by spaces as well.
         for a in self.A:
             f.write(' '.join([str(i) for i in a]))
             f.write("\n")
@@ -64,67 +82,6 @@ class HiddenMarkovModel:
             f.write(' '.join([str(i) for i in o]))
             f.write("\n")
         f.close()
-
-    def viterbi(self, x):
-        '''
-        Uses the Viterbi algorithm to find the max probability state
-        sequence corresponding to a given input sequence.
-
-        Arguments:
-            x:          Input sequence in the form of a list of length M,
-                        consisting of integers ranging from 0 to D - 1.
-
-        Returns:
-            max_seq:    Output sequence corresponding to x with the highest
-                        probability.
-        '''
-
-        M = len(x)      # Length of sequence.
-
-        # The (i, j)^th elements of probs and seqs are the max probability
-        # of the prefix of length i ending in state j and the prefix
-        # that gives this probability, respectively.
-        #
-        # For instance, probs[1][0] is the probability of the prefix of
-        # length 1 ending in state 0.
-        probs = [[0. for _ in range(self.L)] for _ in range(M + 1)]
-        seqs = [['' for _ in range(self.L)] for _ in range(M + 1)]
-
-        # Calculate initial prefixes and probabilities.
-        for curr in range(self.L):
-            probs[1][curr] = self.A_start[curr] * self.O[curr][x[0]]
-            seqs[1][curr] = str(curr)
-
-        # Calculate best prefixes and probabilities throughout sequence.
-        for t in range(2, M + 1):
-            # Iterate over all possible current states.
-            for curr in range(self.L):
-                max_prob = float("-inf")
-                max_prefix = ''
-
-                # Iterate over all possible previous states to find one
-                # that would maximize the probability of the current state.
-                for prev in range(self.L):
-                    curr_prob = probs[t - 1][prev] \
-                                * self.A[prev][curr] \
-                                * self.O[curr][x[t - 1]]
-
-                    # Continually update max probability and prefix.
-                    if curr_prob >= max_prob:
-                        max_prob = curr_prob
-                        max_prefix = seqs[t - 1][prev]
-
-                # Store the max probability and prefix.
-                probs[t][curr] = max_prob
-                seqs[t][curr] = max_prefix + str(curr)
-
-        # Find the index of the max probability of a sequence ending in x^M
-        # and the corresponding output sequence.
-        max_i = max(enumerate(probs[-1]), key=lambda x: x[1])[0]
-        max_seq = seqs[-1][max_i]
-
-        return max_seq
-
 
     def forward(self, x, normalize=False):
         '''
@@ -246,63 +203,6 @@ class HiddenMarkovModel:
 
         return betas
 
-
-    def supervised_learning(self, X, Y):
-        '''
-        Trains the HMM using the Maximum Likelihood closed form solutions
-        for the transition and observation matrices on a labeled
-        datset (X, Y). Note that this method does not return anything, but
-        instead updates the attributes of the HMM object.
-
-        Arguments:
-            X:          A dataset consisting of input sequences in the form
-                        of lists of variable length, consisting of integers
-                        ranging from 0 to D - 1. In other words, a list of
-                        lists.
-
-            Y:          A dataset consisting of state sequences in the form
-                        of lists of variable length, consisting of integers
-                        ranging from 0 to L - 1. In other words, a list of
-                        lists.
-
-                        Note that the elements in X line up with those in Y.
-        '''
-
-        # Calculate each element of A using the M-step formulas.
-        for curr in range(self.L):
-            for nxt in range(self.L):
-                num = 0.
-                den = 0.
-
-                for i in range(len(X)):
-                    x = X[i]
-                    y = Y[i]
-                    M = len(x)
-
-                    num += len([1 for i in range(M - 1) \
-                                if y[i] == curr and y[i + 1] == nxt])
-                    den += len([1 for i in range(M - 1) if y[i] == curr])
-
-                self.A[curr][nxt] = num / den
-
-        # Calculate each element of O using the M-step formulas.
-        for curr in range(self.L):
-            for xt in range(self.D):
-                num = 0.
-                den = 0.
-
-                for i in range(len(X)):
-                    x = X[i]
-                    y = Y[i]
-                    M = len(x)
-
-                    num += len([1 for i in range(M) \
-                                if y[i] == curr and x[i] == xt])
-                    den += len([1 for i in range(M) if y[i] == curr])
-
-                self.O[curr][xt] = num / den
-
-
     def unsupervised_learning(self, X, N_iters):
         '''
         Trains the HMM using the Baum-Welch algorithm on an unlabeled
@@ -324,8 +224,6 @@ class HiddenMarkovModel:
         # the code under the comment is part of the M-step.
 
         for iteration in range(1, N_iters + 1):
-            # if iteration % 10 == 0:
-            #     print("Iteration: " + str(iteration))
 
             # Numerator and denominator for the update terms of A and O.
             A_num = [[0. for i in range(self.L)] for j in range(self.L)]
@@ -392,13 +290,12 @@ class HiddenMarkovModel:
                 for xt in range(self.D):
                     self.O[curr][xt] = O_num[curr][xt] / O_den[curr]
 
-    def generate_emission(self, M):
+    def generate_emission(self):
         '''
-        Generates an emission of length M, assuming that the starting state
-        is chosen uniformly at random.
-
-        Arguments:
-            M:          Number of lines to generate.
+        Generates an emission of length 14 lines, assuming that the starting state
+        is chosen uniformly at random. This emission generator does not consider
+        the number of syllables per line, and a line may contain only the new
+        line character when generated this way.
 
         Returns:
             emission:   The randomly generated emission as a list.
@@ -412,7 +309,7 @@ class HiddenMarkovModel:
         states = []
         line = []
 
-        for t in range(M):
+        for t in range(14):
             noend = True
             while(noend):
                 # Append state.
@@ -448,14 +345,19 @@ class HiddenMarkovModel:
 
         return emission, states
 
-    def generate_emission_set_sylls(self, M, sylls, endsylls):
+    def generate_emission_set_sylls(self, sylls, endsylls):
         '''
-        Generates an emission of length M, assuming that the starting state
-        is chosen uniformly at random.
+        Generates an emission of length 14, assuming that the starting state
+        is chosen uniformly at random. By generating an emission of length
+        14, we are trying to resemble a sonnet.
 
         Arguments:
-            M:          Number of lines to generate.
-
+            sylls:      A dictionary mapping the integer representation of a
+                        word to a list containing the number of syllables it
+                        may have.
+            endsylls:   A dictionary mapping the integer representation of a
+                        word to a list containing the number of syllables it
+                        might have if it is the last word of a line
         Returns:
             emission:   The randomly generated emission as a list.
 
@@ -470,7 +372,7 @@ class HiddenMarkovModel:
         syllables = 0
         s = []
 
-        for t in range(M):
+        for t in range(14):
             noend = True
             while(noend):
                 nonext = True
@@ -486,6 +388,10 @@ class HiddenMarkovModel:
                         next_obs += 1
 
                     next_obs -= 1
+
+                    # We can only have our next observation be 0, which
+                    # corresponds to the newline character if we have 10
+                    # syllables in the line.
                     if (next_obs == 0):
                         if (syllables == 10):
                             nonext = False
@@ -493,16 +399,23 @@ class HiddenMarkovModel:
                             count += 1
                     else:
                         if (next_obs in sylls):
+                            # finds if the resulting line could be considered
+                            # to have less than 10 syllables.
                             lessthanlim = False
                             for i in range(len(sylls[next_obs])):
                                 if (syllables + sylls[next_obs][i] < 10):
                                     lessthanlim = True
                                     next_syll = sylls[next_obs][i]
+                            # finds if the resulting line could be considered
+                            # to have 10 syllables, with the next_obs being
+                            # the final word of the line.
                             endlim = False
                             for i in range(len(endsylls[next_obs])):
                                 if (syllables + endsylls[next_obs][i] == 10):
                                     endlim = True
                                     next_syll = endsylls[next_obs][i]
+                            # if the line does not have less than 10 syllables,
+                            # and our next observation 
                             if not lessthanlim:
                                 if not endlim:
                                     count += 1
@@ -572,14 +485,14 @@ class HiddenMarkovModel:
         sline = []
         states = []
         line = []
-        syll_count = 0
         syllables = []
         nextsyllables = []
         newsyllables = []
         tried = 0
         endlim = False
+        cantrhyme = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-        for t in range(M):
+        while not (linenum == 0):
             noend = True
             while(noend):
                 neednext = False
@@ -602,6 +515,7 @@ class HiddenMarkovModel:
                         next_obs -= 1
                         next_obs = rhymes[next_obs]
                         rhymea = next_obs
+                        nonext = False
                     else:
                         if (linenum % 4 == 3):
                             rhymeb = []
@@ -619,6 +533,7 @@ class HiddenMarkovModel:
                             next_obs -= 1
                             next_obs = rhymes[next_obs]
                             rhymeb = next_obs
+                            nonext = False
                         else:
                             if (linenum == 13) or (linenum % 4 == 2):
                                 rhymeswitha = rhymedict[rhymea]
@@ -627,15 +542,38 @@ class HiddenMarkovModel:
                                 for r in rhymeswitha:
                                     probs.append(self.O[state][r])
                                     total += self.O[state][r]
-                                for r in range(len(rhymeswitha)):
-                                    probs[r] = probs[r]/total
-                                rand_var = random.uniform(0, 1)
-                                next_obs = 0
-                                while rand_var > 0:
-                                    rand_var -= probs[next_obs]
-                                    next_obs += 1
-                                next_obs -= 1
-                                next_obs = rhymeswitha[next_obs]
+                                if (total == 0.0):
+                                    if (linenum == 13):
+                                        cantrhyme[linenum-1] += 1
+                                        sline = []
+                                        states = []
+                                        line = []
+                                        emission = []
+                                        syllables = []
+                                        nextsyllbles = []
+                                        newsyllables = []
+                                        linenum = 14
+                                    else:
+                                        cantrhyme[linenum-1] += 1
+                                        sline = []
+                                        line = []
+                                        emission = emission[:14-linenum-2]
+                                        states = states[:14-linenum-2]
+                                        syllables = []
+                                        nextsyllbles = []
+                                        newsyllables = []
+                                        linenum += 2
+                                else:
+                                    for r in range(len(rhymeswitha)):
+                                        probs[r] = probs[r]/total
+                                    rand_var = random.uniform(0, 1)
+                                    next_obs = 0
+                                    while rand_var > 0:
+                                        rand_var -= probs[next_obs]
+                                        next_obs += 1
+                                    next_obs -= 1
+                                    next_obs = rhymeswitha[next_obs]
+                                    nonext = False
                             else:
                                 rhymeswithb = rhymedict[rhymeb]
                                 probs = []
@@ -643,25 +581,36 @@ class HiddenMarkovModel:
                                 for r in rhymeswithb:
                                     probs.append(self.O[state][r])
                                     total += self.O[state][r]
-                                for r in range(len(rhymeswithb)):
-                                    probs[r] = probs[r]/total
-                                rand_var = random.uniform(0, 1)
-                                next_obs = 0
-                                while rand_var > 0:
-                                    rand_var -= probs[next_obs]
-                                    next_obs += 1
-                                next_obs -= 1
-                                next_obs = rhymeswithb[next_obs]
-                    nonext = False
-                    if (next_obs in endsylls):
-                        nextsyllables = endsylls[next_obs]
-                        for n in nextsyllables:
-                            syllables.append([n])
+                                if (total == 0.0):
+                                    cantrhyme[linenum-1] += 1
+                                    sline = []
+                                    line = []
+                                    emission = emission[:14-linenum-2]
+                                    states = states[:14-linenum-2]
+                                    syllables = []
+                                    nextsyllbles = []
+                                    newsyllables = []
+                                    linenum += 2
+                                else:
+                                    for r in range(len(rhymeswithb)):
+                                        probs[r] = probs[r]/total
+                                    rand_var = random.uniform(0, 1)
+                                    next_obs = 0
+                                    while rand_var > 0:
+                                        rand_var -= probs[next_obs]
+                                        next_obs += 1
+                                    next_obs -= 1
+                                    next_obs = rhymeswithb[next_obs]
+                                    nonext = False
+                    if not nonext:
+                        if (next_obs in endsylls):
+                            nextsyllables = endsylls[next_obs]
+                            for n in nextsyllables:
+                                syllables.append([n])
 
 
                 # case where we aren't finding the last word of the line
                 else:
-                    nonext = True
                     count = 0
                     while (nonext and count < 30):
                         # Sample next observation.
@@ -740,16 +689,17 @@ class HiddenMarkovModel:
                         tried = 0
                         neednext = True
                     else:
-                        tried += 1
-                        sline.pop()
-                        line.pop()
-                        newsyllables = []
-                        for s in syllables:
-                            state = s.pop()
-                            newsyllables.append[s]
-                        syllables = newsyllables
-                        newsyllables = []
-                        neednext = True
+                        if len(sline) > 0:
+                            tried += 1
+                            sline.pop()
+                            line.pop()
+                            newsyllables = []
+                            for s in syllables:
+                                state = s.pop()
+                                newsyllables.append(s)
+                            syllables = newsyllables
+                            newsyllables = []
+                            neednext = True
                 if (not nonext) or neednext:
                     rand_var = random.uniform(0,1)
                     next_state = 0
@@ -774,7 +724,23 @@ class HiddenMarkovModel:
 
                     next_state -= 1
                     state = next_state
+
+                    if (cantrhyme[linenum-1] > 10) and linenum-4 >=0:
+                        cantrhyme[linenum-1] = 0
+                        sline = []
+                        line = []
+                        emission = emission[:14-linenum-4]
+                        states = states[:14-linenum-4]
+                        syllables = []
+                        nextsyllbles = []
+                        newsyllables = []
+                        linenum += 2
+
+        for e in emission:
+            e.pop(0)
+            e.append(0)
         emission.reverse()
+
         states.reverse()
         return emission, states
 

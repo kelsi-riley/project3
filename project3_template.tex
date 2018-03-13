@@ -50,10 +50,23 @@
 
 \section{Pre-Processing}
 \medskip
+For our pre-processing of Shakespeare's sonnets, we started by converting each poem into a list, where the list contains the words of the poem in order of appearance, with a newline character between lines of the poem. Then because our HMM uses integer representations of emissions, we created two dictionaries: one mapping words to unique integer values and another mapping integers to unique words. This initial preprocessing was helpful, but when we looked at the values stored in our dictionaries, we realized that capitalized and lowercase words were considered different emissions with this processing, and if a word was followed by punctuation, it was considered a different emission than if it was not.
+
+This prompted us to make each word lower case as we processed it, to ensure that words are considered the same emission regardless of their capitalization. We also decided to remove the characters '.', ',', ':', ';', '(', ')' and '?' from the poems we processed so that we didn't have many different emissions associated with the same word. We decided to leave in the apostrophe due to its presence in contractions, and actually being a part of the representation of the word. This updated preprocessing was an improvement from our initial attempt, but ultimately fell short of what we needed due to the presence of phrases in quotations in some of the poems (i.e. 'Will' in sonnets 135 and 136 and 'not you' and 'I hate' in sonnet 145). This lead us to need to adopt a somewhat more complicated process for removing quotations around words.
+
+We ultimately ended up deciding to remove an apostrophe if it was in the beginning of a word and the word was not a word we recognized as beginning with an apostrophe. Then, we would remove the next apostrophe in the line. This allowed us to remove the quotations around certain words and phrases in the poems.
+
+Because sonnets 126 and 99 adhered to the structure of a sonnet much less rigidly then the rest of Shakespeare's works, we decided not to train our models on them. 
+
+Finally, we wanted to be able to generate sonnets that rhyme, so we ended up extending our pre-processing to enable doing so. To do this, we used our knowledge of the rhyme scheme of Shakespearian sonnets: abab cdcd efef gg. Then, as we processed our poems, we added the unique integer representations of last words of lines that rhyme to a rhyming dictionary. This rhyming dictionary mapped unique integer representations of words to a list of the integer representations of words that it rhymes with. We considered altering this so that if two words rhyme with each other, then every word that rhymes with either of them will rhyme with both of them, but ultimately decided against this implementation due to Shakespeare's liberal use of slant rhymes. We thought that generalizing rhyming this way could possibly produce "rhymes" that hardly resemble rhymes at all. 
+
+
 % Explain your data pre-processing choices, as well as why you chose these choices initially. What was your final pre-processing? How did you tokenize your words, and split up the data into separate sequences? What changed as you continued on your project? What did you try that didn't work? Also write about any analysis you did on the dataset to help you make these decisions.
 
 \section{Unsupervised Learning}
 \medskip
+For our unsupervised learning, we used the Homework 6 Solution Set. We ultimately ended up choosing the number of hidden states due to computational limitations.
+
 % This section should highlight your HMM. What packages did you use, if any? How did you choose the number of hidden states?
 
 
@@ -62,6 +75,36 @@
 \medskip
 % Describe your algorithm for generating the 14-line sonnet. As an example, include at least one sonnet generated from your unsupervised trained HMM. You should comment on the quality of geneating poems in this naive manner. How accurate is the rhyme, rythym, and syllable count, compared to what a sonnet should be? Do your poems make any sense? Do they retain Shakespeare's original voice? How does training with different numbers of hidden states affect the poems generated (in a qualitative manner)? For the good qualities that you describe, also discuss how you think the HMM was able to capture these qualities.
 
+14 Hidden states, 200 iterations:
+ me what my old bear it either's veil are
+ song translated virtue to thine wont be
+ when the earthly lays that but a thee care
+ is dissuade in their numbers forget i
+ live teeth which else that be leisure when prove
+ own twain alone of still mock love forgot
+ flame my ill taught sometime they then but love
+ with things unrest where summer as still not
+ thither out with to time i thou thy bear
+ eyes to thee lost an therefore bold repair
+ water therefore must is tyranny were
+ see be augurs but me a left looks fair  
+ love and his more so eclipse is thing be  
+ concord where dully are respect is i
+ 
+  of then vile loving earth then lends how call
+ speak that short in him within publish is
+ me the far say in of hardest the all
+ why i in civil art a time's eye this
+ shadow of be he which love's of doth lie
+ sense whence wild that but other use remove
+ the hide the of rose forwards mine sense why
+ sorrows fame with lame or flowers the love
+ thereby deformed'st can antiquity rare
+ of my heart be justify as thou thine
+ being give shall above so might and am are
+ are that i it to for his parts be mine  
+ think o sworn is shifting pity my sight  
+ voice so lines from when i effect none night
 
 \section{Poetry Generation, Part 2: Recurrent Neural Networks}
 \medskip

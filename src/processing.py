@@ -8,14 +8,16 @@ def read_saved_HMM(name):
     for i in range(0, len(syllableslist)):
         data = syllableslist[i].split(' ')
         if i == 0:
-            L = data[0]
-            D = data[1]
+            L = int(data[0])
+            D = int(data[1])
         else:
-            if (i <= L + 1):
-                A.append(data)
+            floats = []
+            for d in data:
+                floats.append(float(d))
+            if (i <= L):
+                A.append(floats)
             else:
-                O.append(data)
-
+                O.append(floats)
     return (A, O)
 
 
