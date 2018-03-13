@@ -88,14 +88,14 @@ class Utility:
                     # Start new sequences.
                     mood_seq = []
                     genre_seq = []
-                
+
                 if line == '':
                     break
                 elif line == '-':
                     continue
-                
+
                 mood, genre = line.split()
-                
+
                 # Add new moods to the mood state hash map.
                 if mood not in mood_map:
                     mood_map[mood] = mood_counter

@@ -314,17 +314,54 @@ Thoutment on that gave darefrown from the dangerous year.\\
 
 \subsection{Visualization of the sparsities of A and O}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=90mm]{A_sparsity.png}
-\end{figure}
 
 \begin{figure}[H]
-\centering
-\includegraphics[width=90mm]{O_sparsity.png}
+\begin{minipage}[H]{0.4\linewidth}
+\includegraphics[width=\linewidth]{A_sparsity.png}
+\end{minipage}
+\hfill
+\begin{minipage}[H]{0.4\linewidth}
+\includegraphics[width=\linewidth]{O_sparsity.png}
+\end{minipage}%
 \end{figure}
+
 
 % NEED TO REWORD THIS
 Most elements of A and O are very close to 0. For the A matrix, this implies that at each state, there are only a few states to which the HMM will likely transition. For the O matrix, this implies that at each state, a few key observations are likely to be emitted. Usually, these correspond to frequently occurring words like "the", "and", "a", etc.
+
+\subsection{Visualization of states}
+
+\begin{figure}[H]
+\begin{minipage}[H]{0.4\linewidth}
+\includegraphics[width=\linewidth]{state_0.png}
+\end{minipage}
+\hfill
+\begin{minipage}[H]{0.4\linewidth}
+\includegraphics[width=\linewidth]{state_1.png}
+\end{minipage}%
+\end{figure}
+\begin{figure}[H]
+\begin{minipage}[H]{0.4\linewidth}
+\includegraphics[width=\linewidth]{state_2.png}
+\end{minipage}
+\hfill
+\begin{minipage}[H]{0.4\linewidth}
+\includegraphics[width=\linewidth]{state_3.png}
+\end{minipage}%
+\end{figure}
+\begin{figure}[H]
+\begin{minipage}[H]{0.4\linewidth}
+\includegraphics[width=\linewidth]{state_4.png}
+\end{minipage}
+\hfill
+\begin{minipage}[H]{0.4\linewidth}
+\includegraphics[width=\linewidth]{state_5.png}
+\end{minipage}%
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=90mm]{graph.png}
+\end{figure}
 
 \end{document}
