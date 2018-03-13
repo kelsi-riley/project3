@@ -72,7 +72,7 @@ def generations(HMM, k, sylls, endsylls, linesylls, rhymedict, wantrhyme):
     print('')
 
 
-def unsupervised_generation(D, n_states, N_iters, k, sylls, endsylls, rhymedict, wantrhyme, linesylls=True):
+def unsupervised_generation(D, n_states, N_iters, k, sylls, endsylls, rhymedict):
     '''
     Trains an HMM using unsupervised learning on the poems and then calls
     generations() to generate k emissions for each HMM, processing the emissions
@@ -104,14 +104,14 @@ def unsupervised_generation(D, n_states, N_iters, k, sylls, endsylls, rhymedict,
     HMMreg= HiddenMarkovModel(A, O)
     # generates and prints "poems"
     print("RHYMING!!")
-    generations(HMMrhyme, k, sylls, endsylls, linesylls, rhymedict, wantrhyme)
+    generations(HMMrhyme, k, sylls, endsylls, True, rhymedict, True)
     print("10 SYLLABLES!!")
     generations(HMMrhyme, k, sylls, endsylls, True, rhymedict, False)
     print("REGULAR")
     generations(HMMrhyme, k, sylls, endsylls, False, rhymedict, False)
 
 
-def train_HMM(ps, D, n_states, N_iters, k, sylls, endsylls, rhymedict, linesylls=True):
+def train_HMM(ps, D, n_states, N_iters):
     '''
     Trains an HMM using unsupervised learning on the poems and then calls
     generations() to generate k emissions for each HMM, processing the emissions
@@ -140,23 +140,31 @@ def train_HMM(ps, D, n_states, N_iters, k, sylls, endsylls, rhymedict, linesylls
     # Save the HMM in a text file
     HMM.save_HMM(n_states, N_iters, 2)
 
+    for p in ps:
+        p.reverse()
+        p.insert(0,0)
+        p.pop()
+
+    HMM = unsupervised_HMM(ps, D, n_states, N_iters)
+    HMM.save_HMM(n_states, N_iters, 1)
+
 if __name__ == '__main__':
     # reads in the shakespeare poems.
     (ps, pns, wtn, ntw, rdict) = processing.readshakes()
     # reads and stores the information in the syllable text file
     (sylls, endsylls) = processing.readsylls(wtn)
     k = 5 # number of poems to generate for each model.
-    # If wantrhyme = True, our generations will consist of 14 lines of 10
-    # syllables each, and they will follow the rhyme scheme abab cdcd efef gg.
-    # If wantrhyme = False,
-    wantrhyme = True
-    if (wantrhyme):
-        for p in ps:
-            p.reverse()
-            p.insert(0, 0)
-            p.pop()
-    # Train the HMM.
-    n_states = [16]#, 14, 12, 10, 8] # [2, 4, 8, 16, 32]
+    # We have already trained and stored our models, so we don't need to keep
+    # retraining them.
+    training = False
+    # We want to generate poems from our stored models now.
+    generating = True
+    n_states = [16, 14, 12, 10, 8]
     for n in n_states:
-        #train_HMM(ps, len(wtn), n, 400, k, sylls, endsylls, rdict)
-        unsupervised_generation(len(wtn), n, 400, k, sylls, endsylls, rdict, wantrhyme)
+        # Trains the HMM
+        if (training):
+            train_HMM(ps, len(wtn), n, 400)
+        # Uses a stored, trained HMM to generate different kinds of emissions
+        # (Rhyming, 10 syllables per line, and simply 14 lines)
+        if (generating):
+            unsupervised_generation(len(wtn), n, 400, k, sylls, endsylls, rdict)

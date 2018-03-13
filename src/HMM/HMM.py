@@ -67,7 +67,7 @@ class HiddenMarkovModel:
         read later and we don't have to retrain our HMM models each time we run
         our code, yielding significiant runtime savings.
         '''
-        fname = str(num_states)+"_"+str(num_iters)+"_"+str(HMMid)+".txt"
+        fname = "saved/"+str(num_states)+"_"+str(num_iters)+"_"+str(HMMid)+".txt"
         f = open(fname, "w")
         # The first line contains the numbers of states and observations,
         # seperated by a space.
@@ -298,7 +298,8 @@ class HiddenMarkovModel:
         line character when generated this way.
 
         Returns:
-            emission:   The randomly generated emission as a list.
+            emission:   The randomly generated emission as a list of lists
+                        where each list represents a line of the poem.
 
             states:     The randomly generated states as a list.
         '''
@@ -325,10 +326,9 @@ class HiddenMarkovModel:
 
                 next_obs -= 1
                 line.append(next_obs)
-                emission.append(next_obs)
                 if (next_obs == 0):
                     noend = False
-                    #emission.append(line)
+                    emission.append(line)
                     line = []
                     states.append(sline)
                     sline = []
@@ -360,7 +360,8 @@ class HiddenMarkovModel:
                         word to a list containing the number of syllables it
                         might have if it is the last word of a line
         Returns:
-            emission:   The randomly generated emission as a list.
+            emission:   The randomly generated emission as a list of lists,
+                        where each list is a line of the emission.
 
             states:     The randomly generated states as a list.
         '''
@@ -416,24 +417,46 @@ class HiddenMarkovModel:
                                     endlim = True
                                     next_syll = endsylls[next_obs][i]
                             # if the line does not have less than 10 syllables,
-                            # and our next observation 
+                            # and our next observation could not be the end of
+                            # our line, then we need to try again, if our
+                            # observation could be the last word of our line,
+                            # then we have found our next emission.
                             if not lessthanlim:
                                 if not endlim:
                                     count += 1
                                 else:
                                     nonext = False
+                            # If adding the next observation to our line does
+                            # not push us over the syllable limit, we can add
+                            # it to our line.
                             else:
                                 nonext = False
+                        # This would only happen if our next observation
+                        # is not in our syllable dictionary. This should not
+                        # ever be the case, but we nonetheless will not allow
+                        # the next observation to be something not in our
+                        # syllable dictionary.
                         else:
                             count += 1
-
+                # checks that we have found our next word
                 if not nonext:
                     # Append state.
                     sline.append(state)
+                    # Append line
                     line.append(next_obs)
+                    # update syllables to include the syllable contribution of
+                    # the word we just added.
                     syllables += next_syll
+                    # adds the syllable count of the word we just added to our
+                    # list of syllables, s
                     s.append(next_syll)
 
+                    # If our next observation is the newline character, we have
+                    # reached the end of the line, and should append our line
+                    # to emission and our list of states, sline to states. We
+                    # also reset syllable tracking variables s and syllables to
+                    # be the empty list, and 0 accordingly, so that we can
+                    # begin our next line on the next iteration.
                     if (next_obs == 0):
                         noend = False
                         emission.append(line)
@@ -442,12 +465,17 @@ class HiddenMarkovModel:
                         sline = []
                         syllables = 0
                         s = []
-
+                # if we failed to find our next word after 30 attempts, we
+                # remove the last elements from sline, line, and s, and update
+                # syllables to represent the removal of the last word of the
+                # line.
                 else:
                     sline.pop()
                     line.pop()
                     syllables -= s.pop()
 
+                # chooses a next state randomly using the probability of
+                # transitioning from our previous state to next possible states.
                 rand_var = random.uniform(0,1)
                 next_state = 0
                 if (len(sline) == 0):
@@ -463,16 +491,27 @@ class HiddenMarkovModel:
 
         return emission, states
 
-    def generate_emission_rhyme(self, M, sylls, endsylls, rhymedict):
+    def generate_emission_rhyme(self, sylls, endsylls, rhymedict):
         '''
-        Generates an emission of length M, assuming that the starting state
+        Generates an emission of length 14 lines, assuming that the starting state
         is chosen uniformly at random.
 
         Arguments:
-            M:          Number of lines to generate.
+            sylls:      A dictionary mapping the integer representation of a
+                        word to a list containing the number of syllables the
+                        word might be considered to have if it is not the last
+                        word in the line.
+            endsylls:   A dictionary mapping the integer representation of a
+                        word to a list containing the number of syllables the
+                        word might be considered to have if it is the last word
+                        in the line.
+            rhymedict:  A dictionary mapping the integer representation of words
+                        to lists containing the integer representation of words
+                        that rhyme with it.
 
         Returns:
-            emission:   The randomly generated emission as a list.
+            emission:   The randomly generated emission as a list of lists,
+                        where each list represents a line of the poem.
 
             states:     The randomly generated states as a list.
         '''
@@ -493,13 +532,26 @@ class HiddenMarkovModel:
         endlim = False
         cantrhyme = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
+        # because we update linenum to represent which line we need to
+        # generate next, starting from 14 and working our way up to the first
+        # line of the sonnet, if linenum reaches 0, we have generated all
+        # 14 lines of our poem and can stop generating.
         while not (linenum == 0):
+            # this while loop will continue until we generate an entire line.
             noend = True
             while(noend):
                 neednext = False
-                #print(line)
                 nonext = True
+                # when syllables is an empty list, there are no words in our
+                # current line yet, and we will need to either choose a word to
+                # end the line with from our rhyming dictionary, or choose
+                # a word that rhymes with the last word of a line we have
+                # already generated to follow the rhyme scheme.
                 if (syllables == []):
+                    # chooses a word randomly from the rhyming dictionary to
+                    # end the current line with and stores it in rhymea so that
+                    # it can easily be accessed when later generating a line
+                    # that must end with a word rhyming with our chosen word.
                     if (linenum == 14) or (linenum % 4 == 0):
                         rhymea = []
                         total = 0.0
@@ -535,6 +587,9 @@ class HiddenMarkovModel:
                             next_obs = rhymes[next_obs]
                             rhymeb = next_obs
                             nonext = False
+                        # This means that instead of generating the word that
+                        # must be rhymed with, we must choose a word that rhymes
+                        # with a stored rhyme word.
                         else:
                             if (linenum == 13) or (linenum % 4 == 2):
                                 rhymeswitha = rhymedict[rhymea]
@@ -543,6 +598,13 @@ class HiddenMarkovModel:
                                 for r in rhymeswitha:
                                     probs.append(self.O[state][r])
                                     total += self.O[state][r]
+                                # because O is sparse, it is possible that we
+                                # can't observe any words rhyming with rhymea
+                                # in our current state. If this is the case,
+                                # we have to backtrack and try generating the
+                                # earlier line that this line must ryhme with
+                                # again. We will keep doing this until
+                                # we succesfully get a possible rhyme.
                                 if (total == 0.0):
                                     if (linenum == 13):
                                         cantrhyme[linenum-1] += 1
@@ -603,6 +665,8 @@ class HiddenMarkovModel:
                                     next_obs -= 1
                                     next_obs = rhymeswithb[next_obs]
                                     nonext = False
+                    # If we have found the next word of our poem, we update our
+                    # syllables list accordingly.
                     if not nonext:
                         if (next_obs in endsylls):
                             nextsyllables = endsylls[next_obs]
@@ -623,6 +687,11 @@ class HiddenMarkovModel:
                             next_obs += 1
 
                         next_obs -= 1
+
+                        # our next observation can only be 0 and should be 0 if
+                        # endlim is True (our previous word brought the syllable
+                        # count of the line to 10, so we are ready to move on to
+                        # generating the next line).
                         if (next_obs == 0):
                             if (endlim):
                                 nonext = False
@@ -646,26 +715,44 @@ class HiddenMarkovModel:
                                             nexts = list(syllables[j])
                                             nexts.append(nextsyllables[i])
                                             newsyllables.append(nexts)
+                                    # finds if this word could be the last (or
+                                    # in this case, first, word of the line.
+                                    # Note: because we are generating lines
+                                    # backwards this word will actually end up
+                                    # being the first word of the line)
                                     for j in range(len(newsyllables)):
                                         if (sum(newsyllables[j]) == 10):
                                             endlim = True
                                             syllables = list(newsyllables)
+                                        # Checks if the word can be added to
+                                        # the line without exceeding the
+                                        # syllable limit or being the last
+                                        # word.
                                         else:
                                             if (sum(newsyllables[j]) < 10):
                                                 lessthanlim = True
                                                 syllables = list(newsyllables)
 
-
+                                    # If this word cannot end the line and
+                                    # cannot be added to the line without
+                                    # exceeding the syllable limit of 10, then
+                                    # we cannot add the word. Otherwise, it is
+                                    # our next word.
                                     if (not endlim) and (not lessthanlim):
                                         count +=1
                                     else:
                                         nonext = False
 
-
+                # Checks if we have found the next emission.
                 if not nonext:
                     # Append state.
                     line.append(next_obs)
                     sline.append(state)
+                    # If we have reached the end of the line, we must
+                    # decrement our linenum variable, reverse our line and sline,
+                    # and then append line and sline to emission and states
+                    # respectively. Then we reset variables to track the next
+                    # line.
                     if (next_obs == 0):
                         noend = False
                         endlim = False
@@ -678,6 +765,11 @@ class HiddenMarkovModel:
                         syllables = []
                         linenum -= 1
 
+                # If we haven't found the next observation, checks if we have
+                # backtracked 10 times. If so, we restart the line from the
+                # first word and continue generating. Otherwise, we remove just
+                # the last state and emission from sline and line, and remove
+                # the contribution from the last word from syllables.
                 else:
                     if (tried > 10):
                         sline = [sline[0]]
@@ -701,7 +793,9 @@ class HiddenMarkovModel:
                             syllables = newsyllables
                             newsyllables = []
                             neednext = True
+                # Checks if we need to generate the next state
                 if (not nonext) or neednext:
+                    #finds the next state.
                     rand_var = random.uniform(0,1)
                     next_state = 0
                     if (len(sline) == 0):
@@ -709,23 +803,24 @@ class HiddenMarkovModel:
                             state = states[len(states) -1][len(states[len(states) -1]) -1]
                         else:
                             state = random.choice(range(self.L))
-
                     else:
                         state = sline[len(sline) - 1]
-                    transprop = []
+                    transprob = []
                     total = 0.0
                     for k in range(0, self.L):
-                        transprop.append(self.A[state][k])
+                        transprob.append(self.A[state][k])
                         total += self.A[state][k]
                     for k in range(0, self.L):
-                        transprop[k] = transprop[k]/total
+                        transprob[k] = transprob[k]/total
                     while rand_var > 0:
-                        rand_var -= transprop[next_state]
+                        rand_var -= transprob[next_state]
                         next_state += 1
 
                     next_state -= 1
                     state = next_state
 
+                    # If we have tried and failed to rhyme more than 10 times,
+                    # We will backtrack further to try to generate a full poem.
                     if (cantrhyme[linenum-1] > 10) and linenum-4 >=0:
                         cantrhyme[linenum-1] = 0
                         sline = []
@@ -736,7 +831,14 @@ class HiddenMarkovModel:
                         nextsyllbles = []
                         newsyllables = []
                         linenum += 2
-
+        # Because we ended each line with the newline character and lines were
+        # generated backwards, then reversed,  each list in emission starts with
+        # the newline character and ends with the last word of the line. To
+        # output emissions in the same format as in our other emission
+        # generating functions, we remove the first element of each list in
+        # emission and append the integer mapping to the newline character.
+        # Then we must reverse the lists in emission so that the first line is
+        # represented by the first list.
         for e in emission:
             e.pop(0)
             e.append(0)

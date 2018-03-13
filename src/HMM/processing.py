@@ -1,5 +1,5 @@
 def read_saved_HMM(name):
-    f= open(name, "r")
+    f= open("saved/"+name, "r")
     syllableslist = f.read().splitlines()
     L = 0
     D = 0

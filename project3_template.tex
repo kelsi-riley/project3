@@ -42,7 +42,8 @@
     
     \item \boldline{Division of labour} \\
     % Insert text here.
-    Kelsi implemented the HMM, and focused on improving it. She also did the preprocessing for the HMM, and the unsupervised algorithm. Sakthi implemented the RNN and worked on improvements for it, as well and the visualization and interpretation of the HMM.
+    Kelsi implemented the HMM, and focused on improving it. She also did the preprocessing for the HMM, and was responsible for the unsupervised training of the HMM. Sakthi implemented the RNN and worked on improvements for it, as well and the visualization and interpretation of the HMM.
+    \item \boldline{Github Repository} https://github.com/kelsi-riley/project3/
 
 \end{itemize}
 
@@ -54,19 +55,84 @@ For our pre-processing of Shakespeare's sonnets, we started by converting each p
 
 This prompted us to make each word lower case as we processed it, to ensure that words are considered the same emission regardless of their capitalization. We also decided to remove the characters '.', ',', ':', ';', '(', ')' and '?' from the poems we processed so that we didn't have many different emissions associated with the same word. We decided to leave in the apostrophe due to its presence in contractions, and actually being a part of the representation of the word. This updated preprocessing was an improvement from our initial attempt, but ultimately fell short of what we needed due to the presence of phrases in quotations in some of the poems (i.e. 'Will' in sonnets 135 and 136 and 'not you' and 'I hate' in sonnet 145). This lead us to need to adopt a somewhat more complicated process for removing quotations around words.
 
-We ultimately ended up deciding to remove an apostrophe if it was in the beginning of a word and the word was not a word we recognized as beginning with an apostrophe. Then, we would remove the next apostrophe in the line. This allowed us to remove the quotations around certain words and phrases in the poems.
+We ultimately ended up deciding to remove an apostrophe if it was in the beginning of a word and the word was not a word we recognized as beginning with an apostrophe. Then, we would remove the next apostrophe in the line. This allowed us to remove the quotations around certain words and phrases in the poems and simplified the number of observations of our model. 
 
-Because sonnets 126 and 99 adhered to the structure of a sonnet much less rigidly then the rest of Shakespeare's works, we decided not to train our models on them. 
+Because sonnets 126 and 99 adhered to the structure of a sonnet much less rigidly then the rest of Shakespeare's works, we decided not to train our models on them. While we were pre-processing the poems, we then did not represent these poems in our produced list of poems, where each poem was represented as a list of integers. 
+
+Also, as we suspected it would be useful to be able to easily assess if an integer emission mapped to the newline character, we decided to initialize our dictionaries mapping words to their unique integer representations and vice-versa with the newline-0 pair. This would allow us to easily identify when we had reached the end of the line when generating poems, instead of having to constantly use the dictionary mapping integer representations to strings to check if the string mapped to is the newline character. 
 
 Finally, we wanted to be able to generate sonnets that rhyme, so we ended up extending our pre-processing to enable doing so. To do this, we used our knowledge of the rhyme scheme of Shakespearian sonnets: abab cdcd efef gg. Then, as we processed our poems, we added the unique integer representations of last words of lines that rhyme to a rhyming dictionary. This rhyming dictionary mapped unique integer representations of words to a list of the integer representations of words that it rhymes with. We considered altering this so that if two words rhyme with each other, then every word that rhymes with either of them will rhyme with both of them, but ultimately decided against this implementation due to Shakespeare's liberal use of slant rhymes. We thought that generalizing rhyming this way could possibly produce "rhymes" that hardly resemble rhymes at all. 
+
+
 
 
 % Explain your data pre-processing choices, as well as why you chose these choices initially. What was your final pre-processing? How did you tokenize your words, and split up the data into separate sequences? What changed as you continued on your project? What did you try that didn't work? Also write about any analysis you did on the dataset to help you make these decisions.
 
 \section{Unsupervised Learning}
 \medskip
-For our unsupervised learning, we used the Homework 6 Solution Set. We ultimately ended up choosing the number of hidden states due to computational limitations.
+For our implementation of unsupervised learning for our Hidden Markov Model, we used the Homework 6 Solution Set. This implementation used the Baum-Welch algorithm to train on an unlabeled data set. We experimented with a variety of hidden state and iteration counts, and ultimately ended up deciding to choose these values to balance quality of poem emission with computation time. A greater number of hidden states seemed to yield more convincing imitation sonnets, but also produced very long run times. We ended up deciding to settle for 16 hidden states and modified our code so that trained Hidden Markov Models could be stored in text files and then accessed again later, so that we wouldn't have to wait for hours every time we wanted to generate poems. 
 
+\subsection{Choosing Hidden States}
+\noindent
+\textbf{Poem generated from HMM with 8 Hidden States:}\\
+Seen is when now pretty importune air \\
+Even the dial in the and eye do \\
+To in sadly amen telling lend fair \\
+Needing them as the one of leisure too \\
+Others himself whose much weary three cold \\
+Own alteration urge torn is to thee \\
+Best urge when heavily of my make old \\
+Because loves see in end pyramids me \\
+And my are mind of glass good your which jewel \\ 
+Worth say few frequent thy in thy eyes those \\
+Yet unlooked then to rehearse which that cruel \\
+It away essays is with more strong grows \\
+\indent
+  Say to whom strongly drawn full things what fitted \\ 
+\indent
+  Blame sick of a prove of else crime committed \\
+
+\clearpage
+
+\noindent
+\textbf{Poem Generated from HMM with 12 Hidden States:} \\
+Essays slay comment tear though all not show \\
+Hours would neglected to beauty thou hearts \\
+Boot to of the lives mad to in dost so \\
+I thoughts interest of no thoughts is the line\\ 
+Of that two authorizing no one her \\
+Self-love simple being therein not truth this \\
+End a thou that thy say when thy am her \\
+Which said when your sweet shall love to see is \\
+Beauty thinking since with to gain hours \\
+I use did know with taste let wrongs thou one \\
+My jade of soon so jewels be flowers \\
+Alone confound without said thy alone \\
+\indent
+  Then flattery doth being an love deeds be\\ 
+\indent
+  You largess bid sums my self bad when I \\
+ 
+\noindent 
+\textbf{Poem Generated from HMM with 16 Hidden States:}\\
+Far phrase unhappily whom high thou heart \\
+Are and carve bareness fragrant not all make \\ 
+Two lawful not remembrance herald art \\
+By and wrinkles the welfare break sense take \\
+Knows for tells false heart where eye hue and know \\
+Ills and wink heart his being is catch be \\
+Proved I of my assured moiety so \\
+Live have was constancy doth think in I \\ 
+I stay a for too you thy not self man \\
+Heaven's age out thou I doth tell pilgrimage \\
+Watch o in the time's fair with loving can \\
+War for all a pent that when my you age \\
+\indent
+  Is saw is soul richly cannot days heart \\
+\indent
+  Or since the thy cloak we thou call wide art \\
+
+As we increased the number of hidden states of our Hidden Markov Model, the quality of poem generated seemed to improve. Note: these poems were generated using our more sophisticated emission generation method, which enforces that lines must all be 10 syllables and that the produced poem must follow the proper rhyme scheme. We qualitatively decided that training with more hidden states improved the performance of our model, and ended up only using 16 hidden states instead of exploring the potential of using more because training the Hidden Markov Model with 16 hidden states already took hours. We thought training a Hidden Markov Model with any more hidden states would take too long to be practical. 
 % This section should highlight your HMM. What packages did you use, if any? How did you choose the number of hidden states?
 
 
@@ -74,37 +140,89 @@ For our unsupervised learning, we used the Homework 6 Solution Set. We ultimatel
 \section{Poetry Generation, Part 1: Hidden Markov Models}
 \medskip
 % Describe your algorithm for generating the 14-line sonnet. As an example, include at least one sonnet generated from your unsupervised trained HMM. You should comment on the quality of geneating poems in this naive manner. How accurate is the rhyme, rythym, and syllable count, compared to what a sonnet should be? Do your poems make any sense? Do they retain Shakespeare's original voice? How does training with different numbers of hidden states affect the poems generated (in a qualitative manner)? For the good qualities that you describe, also discuss how you think the HMM was able to capture these qualities.
+For our naive 14-line sonnet generation, we simply generated poems by randomly selecting a hidden state to start with, then randomly selecting the next observation and next state using the previous hidden state, as well as transition and emission probabilities stored in A and O of the Hidden Markov Model. We continued to do this until we had added 14 newline characters to our emission, so it would be 14 lines long. Poems generated this way were pretty terrible attempts at imitating sonnets. I have included a few examples of sonnets produced this way:
 
-14 Hidden states, 200 iterations:
- me what my old bear it either's veil are
- song translated virtue to thine wont be
- when the earthly lays that but a thee care
- is dissuade in their numbers forget i
- live teeth which else that be leisure when prove
- own twain alone of still mock love forgot
- flame my ill taught sometime they then but love
- with things unrest where summer as still not
- thither out with to time i thou thy bear
- eyes to thee lost an therefore bold repair
- water therefore must is tyranny were
- see be augurs but me a left looks fair  
- love and his more so eclipse is thing be  
- concord where dully are respect is i
- 
-  of then vile loving earth then lends how call
- speak that short in him within publish is
- me the far say in of hardest the all
- why i in civil art a time's eye this
- shadow of be he which love's of doth lie
- sense whence wild that but other use remove
- the hide the of rose forwards mine sense why
- sorrows fame with lame or flowers the love
- thereby deformed'st can antiquity rare
- of my heart be justify as thou thine
- being give shall above so might and am are
- are that i it to for his parts be mine  
- think o sworn is shifting pity my sight  
- voice so lines from when i effect none night
+\subsection{Poems Naively Generated from HMM with 8 Hidden States, Trained for 400 Iterations} 
+\noindent
+\textbf{Sonnet 1} \\
+Shines to \\
+Wrong vanished when at and reason more had being and departest canst time in his tempteth \\
+Painted goddess I \\
+Said hours sight lesser the all to blessed suppose brief thy with lays lo in thine took I absent to \\
+Age bosom aye or none \\
+Name to of days with woe the keep even wit on from though \\
+Making it sealed against \\
+Grief to to those \\
+\\
+Afterwards her but and \\
+Hast I all \\
+Ornament my \\
+\indent
+  Glass the her confined all longer not have as \\
+\indent
+  Sing it knife spite by love is \\
+  
+\noindent
+\textbf{Sonnet 2} \\
+And the spurring and that and \\
+Spirit in press I those brow a is the to you how and \\
+\\
+\\
+Lies can doth sorrow to eager pluck bending \\
+Iniquity course love she fiend sweet gain poor moon thy \\
+Deeds born believe all as years fresh to the eternal interest but so glad be hath the sunset swear \\
+Black put and that \\
+Still have state my may do that such have no thou a sweet himself how salving \\
+Is it hence secret purity thy unkind past read \\
+Fresh shall as no or decease sun refined costly truth inward with \\
+Sweet this what \\
+\indent
+  Saw so love lose wish wait who \\
+\indent
+  Thing my by shadow the I \\
+
+As you can see, the syllable count of the lines is very inconsistent, ranging from 0 (in the case of the completely empty line) to nearly double the expected syllable count. On a similar note, the rhythm is inconsistent with the Shakespearian sonnets we used to train our HMM. This naive generation also fails to include any rhyming at all. Overall, these generations were largely nonsensical and fail to be very understandable. As such, they fail to retain Shakespeare's original voice very well and don't resemble his Sonnets closely at all. When we use this same generation method with a Hidden Markov Model with more hidden states we see similar results:
+
+\subsection{Poems Naively Generated from HMM with 16 Hidden States, Trained for 400 Iterations}
+\noindent
+\textbf{Sonnet 3} \\
+Self of ere \\
+Write silence sun worth things my in absence or \\
+\\
+Sour account which love\\ 
+Sake my blind therein he by by hand world's thy full \\ 
+Rotten I not flowers then I I and err who I as \\
+Rents wake and ere decease done lines every of simple and \\
+Will to eyes moon incertainty king invent doth print a what like \\
+Stands forgotten ever have thee poor \\
+Verse false or \\
+Possessing love's the and \\ 
+Desired if \\
+\indent
+  See this in all my \\
+  \\
+  
+\noindent
+\textbf{Sonnet 4} \\
+Beams it but grace thee for but shore their make with thoughts than \\
+Kept body hadst thou profitless \\
+Be should pricked all to that \\
+Thee the simply \\
+Hid bath in despite worth his a true and learn be even when \\
+Eclipses thee to sweetly themselves are \\
+Show this of which farther moon \\
+Acquainted all praise to \\
+You their live \\
+Loving tender your will as heart unkindness yet \\
+Too true it deceive once friends all it she lose earth upon now he happy be \\
+Is not may mistress' all from hath \\
+\indent
+  More so \\
+\indent
+  Jewel and\\
+
+When we increase the number of hidden states, the length of the lines becomes more consistent, and there are fewer lines that don't contain any words at all, but the produced sonnets are still fail to meaningfully resemble Shakespearian sonnets. The quality improves with the increase in hidden states, but ultimately the problems of the generated sonnets failing to rhyme, have the correct number of syllables, and adhere to the standard rhythm of sonnets makes these generations lackluster. With more hidden states, Shakespeare's voice appears to show in the generation better, but it still isn't very accurately represented by our generations. 
+
 
 \section{Poetry Generation, Part 2: Recurrent Neural Networks}
 \medskip
@@ -184,7 +302,7 @@ more that my self but was donf iis oun\\
 gow many lambs kild and they acvodance seegng\\
 and all the dead no nore drtbl dole"\\
 
-\section{Additional Goals}
+\section{Additional Goals With RNN Model}
 \medskip
 
 % Explore methods of improving your poems or extending them. You do not need to attempt all of the tasks listed in the assignment for full marks on this section. If you have ideas for other improvements to the poetry generation not listed here, feel free to talk to a TA and work on it. The sky is the limit.
@@ -240,6 +358,9 @@ against my valthough it should nor gistless\\
 cinfounded in a mined eyes\\
 the tongue by the grave and thee\\
 \medskip
+\clearpage
+
+
 ----- Diversity: 0.75\\
 \medskip
 but loves her painted hend\\
@@ -299,6 +420,84 @@ Eyesand never was so watch the for both's transport.\\
 To the priseand sily burupt make tears they sphere,\\
 \indent
 Thoutment on that gave darefrown from the dangerous year.\\
+
+
+\section{Additional Goals with HMM Model}
+\subsection{Syllable Count}
+To generate emissions that more closely resembled sonnets, we decided the first thing that we needed to do would be to make sure generated lines have the proper number of syllables. To do this, we created a new poem generation function that produced lines that were all 10 syllables. To do this, we simply generated the beginning of lines as usual, but kept track of the syllable count of our line. We would not add the newline character until our line contained exactly 10 syllables, and would not add a word to our line if it would cause us to surpass 10 syllables. This implementation would also "backtrack" or remove words we already added to the line if it could not find a word to add to the end of the line after many attempts. 
+
+This new generation method ultimately improved the quality of our generated sonnets a lot. Having the lines of the generated poem each contain the correct number of syllables made them resemble Shakespearian sonnets much more closely. Below we have included a poem generated using this improved generation method:\\
+
+\clearpage
+
+\noindent
+\textbf{Sonnet Generated with  HMM with 16 Hidden States and 400 Training Iterations} \\
+Love and which away self the he let who \\
+Same summer's to darkness lovers thy that \\ 
+Inward the and on sight this I if thee \\
+Hoisted woe see do let brow of on could \\ 
+Impeached visage to unkind with for on \\
+Conspire me me keeps will the fool I tanned \\
+Thought ill the this which jewel men so my \\
+A a world a did a horses and faults \\
+Ransom and hearts my frame being it to \\ 
+Tongue in you I love think looking if now \\
+Thee deeds the pitying from alike saith by \\
+Near your death's long sorrow more to that art \\
+\indent
+  Spirit this falsehood things I thee not me \\
+\indent
+  Were since red love love in envy well and \\
+
+
+\subsection{Rhyming}
+While altering our method of emission generation allowed our Hidden Markov Models to generate poems more closely resembling Shakespearian sonnets, they still failed to generate poems with any kind of rhyme scheme. We decided that we should further improve our emission generation method to ensure that the produced sonnets followed the abab cdcd efef gg rhyme scheme. To do this, we used the rhyming dictionary that we created when pre-processing the sonnets and generated lines of our emission backwards, starting with the last word of the last line of the poem. 
+
+Because we generated poems backwards in this implementation, we reversed the lists containing our training poems, and trained our Hidden Markov Model using the reversed lists of poems. Then, we started generation, selecting a word to rhyme with using the rhyming dictionary generated while pre-processing the data when we came across the later of two lines that would have to rhyme with each other. Then when we got to generating the earlier line to rhyme with a previous word we had chosen, we randomly chose a word that rhymed with it using the rhyming dictionary again. Unfortunately, because O is sparse, it is possible that when we are generating a line that must rhyme with a previously generated line, it is not possible to generate any of the words that would satisfy the rhyme. In this case, we would "backtrack" again, regenerating the previous line and hoping for better luck the next time. If this repeatedly fails, our generation algorithm backtracks further, reselecting the word to rhyme with and then regenerating subsequent lines.
+
+In this implementation, we again enforced that each line must be exactly 10 syllables long, using the same underlying algorithm described above in the syllable count section. This improved generation method yielded poems that were much more similar to the Shakespearian sonnets which our HMM was trained on. \\
+
+\clearpage
+
+\noindent
+\textbf{Sonnets Generated with HMM with 16 Hidden States and 400 Training Iterations}\\
+Far phrase unhappily whom high thou heart \\
+Are and carve bareness fragrant not all make\\ 
+Two lawful not remembrance herald art \\
+By and wrinkles the welfare break sense take \\
+Knows for tells false heart where eye hue and know \\
+Ills and wink heart his being is catch be \\
+Proved I of my assured moiety so \\
+Live have was constancy doth think in I\\ 
+I stay a for too you thy not self man \\
+Heaven's age out thou I doth tell pilgrimage\\ 
+Watch o in the time's fair with loving can \\
+War for all a pent that when my you age \\
+\indent
+  Is saw is soul richly cannot days heart \\
+\indent
+  Or since the thy cloak we thou call wide art\\ 
+  \\
+  Faults if of ill me horse art it so her \\
+With against second pay that and truth too \\
+You desire exceeded think thou blood her \\
+Be on than are so rich was can though do \\
+Than air sense at body living their any \\
+Me or you bring do of of this I find \\
+Your days rise to gaze with to all many \\
+Side remain weeds carve huge thee hath chide blind \\
+Will your own stand gave still that then belied \\
+The learned's and from less tell soul an there \\
+Hath most varying as in time except wide \\
+Are toil labouring thy clock our age where \\
+\indent
+  Live ruth whom I flattery tongue I and call \\
+ \indent
+  His make thou ye assured her thought all \\
+
+\subsection{Further Improvements}
+If we had more time to improve our Hidden Markov Model, we would have liked to reincorporate punctuation to our poem generation. The lack of punctuation is an aspect of the generated poems that obviously deviates from Shakespearian sonnets. Additionally, if we had more time, we would have enjoyed being able to experiment with the performance of Hidden Markov Models with more than 16 hidden states. Unfortunately, because training the Hidden Markov Models took a very long time, we were unable to explore models with very many hidden states. It also would have been interesting to explore Haiku generation with our Hidden Markov Model, although we were unable to do so in the scope of this project.
+
 
 \section{Visualization and Interpretation}
 \medskip
