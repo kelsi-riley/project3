@@ -232,7 +232,7 @@ When we increase the number of hidden states, the length of the lines becomes mo
 \subsection{Initial Implementation}
 For our preprocessing for the RNN, we decided to first break down the text file by line, and for each line we parsed, we made sure the line was not empty (not just an endline character) and removed any special characters from it. For example, we wanted to "Hello!" and "hello" to be processed as the same sequence of characters. We then finished each line with an endline character and added it to a accumulating string, which held the contents of the processed text file. After processing the input, we created dictionaries to convert each character found in the processed text to an integer, and a dictionary that converted integers to characters. We then generated a data set splitting this string into sequences of 40 consecutive characters, and converting the sequence of characters into a sequence of integers, and used the 41st character of the sequence as the y value, again, after converting it to an int.
 
-We implemented a recurrent neural network using the Keras package for Python3. Using a sequential model, we had two dense LSTM layers of size 200, and one output layer. We calculated our loss using categorical cross-entropy loss, and 'adam' optimization. We also fine tuned our batch size, testing values of 32, 64, and 128. By observing the poems produced for these batch sized after 10 epochs of training, we settled on a batch size of 64. We also fine-tuned the size of the dense layers, trying sizes of 100, 150, and 200, as suggest in the project details, and settled of a size of 200. We then trained this model for 125 epochs, converging to a loss of 0.4146 from a loss of 3.45 after the first epoch. To improve our model, we also looked at more complex RNN, using two dropout layers between the dense layers, and fine tuned the dropout probability to eventually choose 0.4. Initially, the model was only trained for 20 epochs, but we found that the loss still hadn't converged so we continued training until the loss did not improve for 2 epochs. We used a window size of 40 as the instruction suggested, but later moved to smaller window size of 25 in our attempts to improve our model. 
+We implemented a recurrent neural network using the Keras package for Python3. Using a sequential model, we had two dense LSTM layers of size 200, and one output layer. We calculated our loss using categorical cross-entropy loss, and 'adam' optimization. We also fine tuned our batch size, testing values of 32, 64, and 128. By observing the poems produced for these batch sized after 10 epochs of training, we settled on a batch size of 64. We also fine-tuned the size of the LSTM layers, trying sizes of 100, 150, and 200, as suggest in the project details, and settled of a size of 200. We then trained this model for 125 epochs, converging to a loss of 0.4146 from a loss of 3.45 after the first epoch. To improve our model, we also looked at more complex RNN, using two dropout layers between the LSTM layers, and fine tuned the dropout probability to eventually choose 0.4. Initially, the model was only trained for 20 epochs, but we found that the loss still hadn't converged so we continued training until the loss did not improve for 2 epochs. We used a window size of 40 as the instruction suggested, but later moved to smaller window size of 25 in our attempts to improve our model. 
 
 To generate our poems, we used our seed sequence "Shall I compare thee to a summer's day?" and processed it, and for a sliding window of 40 characters, predicted the next letter in the sequence. Our model gives us an array of probabilities for the next character, given the previous 40 characters, so using this array of probabilities, we sample from the population of characters accordingly for a given diversity value. We also counted the number of newline characters that were predicted in the entire generation process, stopping after 14 newline characters, giving us 14 lines in the poem. 
 
@@ -309,7 +309,7 @@ and all the dead no nore drtbl dole"\\
 
 \subsection{Haikus}
 
-We adapted our RNN to compose haikus. To do this, we created an file of haikus, where each line in a haiku in separated by a tab character, and each haiku is separated by a newline character. We also changed our window size from 40 characters to 15, since haikus are much smaller, and a 40 character seed would make up a significant portion of the poem. We continued to use dense layers of size 200. We then trained the RNN on this data set for about 100 epochs with a batch size of 64 (the batch size we found was effective for our sonnets). To generate our haikus, we used the same skeleton as the sonnets, just adjusting the window size. The results for the haikus were much more promising than the sonnets, which was surprising considering the training set was smaller. Here are some of our favorite haikus that were generated:\\
+We adapted our RNN to compose haikus. To do this, we created an file of haikus, where each line in a haiku in separated by a tab character, and each haiku is separated by a newline character. We also changed our window size from 40 characters to 15, since haikus are much smaller, and a 40 character seed would make up a significant portion of the poem. We continued to use LSTM layers of size 200. We then trained the RNN on this data set for about 100 epochs with a batch size of 64 (the batch size we found was effective for our sonnets). To generate our haikus, we used the same skeleton as the sonnets, just adjusting the window size. The results for the haikus were much more promising than the sonnets, which was surprising considering the training set was smaller. Here are some of our favorite haikus that were generated:\\
 
 \begin{center}
 
@@ -331,7 +331,7 @@ Of course, many of the haikus we generated often contained just jumbled letters,
 
 \subsection{More Complex RNNs}
 
-To improve our RNN, we decided to implement a more complex model. Instead of using two dense layers of size 200, we decided to include dropout layers as well to avoid overfitting.We also used a smaller window size of 25. Moreover, instead of predicting the character following a sequence, we trained the model to predict the character preceding the sequence. This was in preparation for us to generate rhyming poems.
+To improve our RNN, we decided to implement a more complex model. Instead of just using two LSTM layers of size 200, we decided to include dropout layers as well to avoid overfitting.We also used a smaller window size of 25. Thus our final RNN model consisted of two alternating LSTM layers of size 512, alternating with dropout layers. For these dropout layers, we experimented with probabilities of 0.1, 0.2,, 0.4, and 0.5, settling on 0.2. Moreover, instead of predicting the character following a sequence, we trained the model to predict the character preceding the sequence. This was in preparation for us to generate rhyming poems.
 
 Given the chance to do this again, we would have liked to also train with a validation set, and have stopped training when the validation loss stopped improving, instead of depending of the training loss. Here are the poems generated with this approach:
 
@@ -395,6 +395,11 @@ and when that gave to trespect thy state\\
 but were the had taught the cloud or all apay\\
 and in her hourffece baskys-are tongue by the grave and thee\\
 \end{flushleft}
+
+\subsection{Larger Training Set}
+
+In order to give the RNN more information to train on, we decided to include another file along with the spencer file given to us. Finding other sonnets composed by Shakespeare, we decided to process that text as well and include it to train our model. This larger training set was used in our final RNN model.
+
 
 \subsection{Rhyming}
 
@@ -502,65 +507,80 @@ If we had more time to improve our Hidden Markov Model, we would have liked to r
 \section{Visualization and Interpretation}
 \medskip
 
-% Explain your interpretation of how a Hidden Markov Model learns patterns in Shakespeare's texts. You should briefly elaborate on the methods you used to analyze the model. In addition, for at least 5 hidden states give a list of the top 10 words that associate with this hidden state and state any common features among these groups. Furthermore, try to interpret and visualize the learned transitions between states. A possible suggestion is to draw a transition diagram of your Markov model and give descriptive names to the states. Feel free to be creative with your visualizations, but remember that accurately representing data is still your primary objective. Your figures, tables, and diagrams should contribute to a discussion about your model.
-
-\subsection{Visualization of dataset}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=90mm]{sonnets_wordcloud.png}
-\end{figure}
-
 \subsection{Visualization of the sparsities of A and O}
 
 
 \begin{figure}[H]
 \begin{minipage}[H]{0.4\linewidth}
-\includegraphics[width=\linewidth]{A_sparsity.png}
+\includegraphics[width=\linewidth]{"report images"/A_sparsity.png}
 \end{minipage}
 \hfill
 \begin{minipage}[H]{0.4\linewidth}
-\includegraphics[width=\linewidth]{O_sparsity.png}
+\includegraphics[width=\linewidth]{"report images"/O_sparsity.png}
 \end{minipage}%
 \end{figure}
 
-
-% NEED TO REWORD THIS
-Most elements of A and O are very close to 0. For the A matrix, this implies that at each state, there are only a few states to which the HMM will likely transition. For the O matrix, this implies that at each state, a few key observations are likely to be emitted. Usually, these correspond to frequently occurring words like "the", "and", "a", etc.
+From the visualization of the sparsities of these matrices, we see that most of the elements are zero or very close to zero. In the visualization of the sparsity of matrix A, we see that this means that for any given state, there are only a few other states that HMM will transition to. Likewise, for the O matrix, this means that for each states, there are only a few observations that are likely to be emitted. 
 
 \subsection{Visualization of states}
 
 \begin{figure}[H]
 \begin{minipage}[H]{0.4\linewidth}
-\includegraphics[width=\linewidth]{state_0.png}
+\includegraphics[width=\linewidth]{"report images"/state_0.png}
 \end{minipage}
 \hfill
 \begin{minipage}[H]{0.4\linewidth}
-\includegraphics[width=\linewidth]{state_1.png}
+\includegraphics[width=\linewidth]{"report images"/state_1.png}
 \end{minipage}%
 \end{figure}
 \begin{figure}[H]
 \begin{minipage}[H]{0.4\linewidth}
-\includegraphics[width=\linewidth]{state_2.png}
+\includegraphics[width=\linewidth]{"report images"/state_2.png}
 \end{minipage}
 \hfill
 \begin{minipage}[H]{0.4\linewidth}
-\includegraphics[width=\linewidth]{state_3.png}
+\includegraphics[width=\linewidth]{"report images"/state_3.png}
 \end{minipage}%
 \end{figure}
 \begin{figure}[H]
 \begin{minipage}[H]{0.4\linewidth}
-\includegraphics[width=\linewidth]{state_4.png}
+\includegraphics[width=\linewidth]{"report images"/state_4.png}
 \end{minipage}
 \hfill
 \begin{minipage}[H]{0.4\linewidth}
-\includegraphics[width=\linewidth]{state_5.png}
+\includegraphics[width=\linewidth]{"report images"/state_5.png}
 \end{minipage}%
 \end{figure}
 
+
+ %In addition, for at least 5 hidden states give a list of the top 10 words that associate with this hidden state and state any common features among these groups.
+ 
+ For State 0, we see that the top 10 words associated with this hidden state are eye, doth, may, say, will, must, far, love, seem, and look. Amongst this group, it seems that majority of the words are verbs and other words that might follow a noun.
+ 
+ For State 1, we see that the top 10 words associated with this hidden state are thee, live, now, make, mine, still, love, whether, beauty, and see. This group is mainly made of adjectives or verbs that would generally precede a noun.
+ 
+ For State 2, we see that the top 10 words associated with this hidden state are thy, love, one, mine, thine, full, made, three, speak, and th'. Similar to State 1, this group of words seems to be made of adjectives using to describe a noun or follow a verb.
+ 
+ For State 3, we see that the top 10 words associated with this hidden state are yet, will, hath, thou, since, love, though, even, now, and save. This group of words suggests that this state represents the beginning of prepositional phrase, and words that might follow a noun in the predicate of a sentence.
+ 
+ For State 4, we see that the top 10 words associated with this hidden state are thee, love, art, true, seen, old, decay, heart, death, and will. This group of words represents nouns that are frequently used by Shakespeare and are words that frequently follow verbs or begin a phrase.
+
+
 \begin{figure}[H]
 \centering
-\includegraphics[width=90mm]{graph.png}
+\includegraphics[width=90mm]{"report images"/graph.png}
+\caption{Graph of transitions between different states in Hidden Markov Model}
 \end{figure}
+
+This graph shows that transitions that we predicted while looking at the individual states are fairly common. We see that the states tend to represent certain parts of speech, and as a result, transition probabilities between certain states reflect the probability of certain parts of speech following one another. For example, we see that the State 4, that we considered the "noun" state often transitions to State 0, which we considered the "verb" state.
+
+From these visualizations, it seems that as HMM learns from the training data, it uses the hidden states to determine different parts of speech, and the transitions are used to determine which parts of speech the model should transition between to mimic the Shakespearean language used in sonnets. With more hidden states, these states would likely extend to include parts of speech with more or less syllables as the machine attempts to account for the iambic pentameter nature of the sonnets. 
+
+
+\medskip
+\medskip
+The following sites were used for help with implementation:\\
+https://machinelearningmastery.com/text-generation-lstm-recurrent-neural-networks-python-keras/\\
+https://machinelearningmastery.com/use-word-embedding-layers-deep-learning-keras/
 
 \end{document}
